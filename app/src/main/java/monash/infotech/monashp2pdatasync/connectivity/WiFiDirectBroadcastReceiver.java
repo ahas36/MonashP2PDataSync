@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import monash.infotech.monashp2pdatasync.MainActivity;
-import monash.infotech.monashp2pdatasync.R;
 
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi p2p events.
