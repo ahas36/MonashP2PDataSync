@@ -10,7 +10,7 @@ public class Peer {
     private String macAddress;
     private boolean isConnected;
 
-    public Peer(String IPAddress, String deviceName, String macAddress,boolean isConnected) {
+    public Peer(String deviceName, String macAddress,String IPAddress, boolean isConnected) {
         this.IPAddress = IPAddress;
         this.deviceName = deviceName;
         this.macAddress = macAddress;
@@ -20,6 +20,7 @@ public class Peer {
     public Peer(String deviceName, String macAddress) {
         this.deviceName = deviceName;
         this.macAddress = macAddress;
+        IPAddress="";
     }
 
     public Peer() {

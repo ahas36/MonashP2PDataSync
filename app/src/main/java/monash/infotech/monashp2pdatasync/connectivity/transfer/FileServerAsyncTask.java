@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.text.AndroidCharacter;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.PopupWindow;
@@ -26,18 +28,18 @@ import monash.infotech.monashp2pdatasync.messaging.MessageType;
  * A simple server socket that accepts connection and writes some data on
  * the stream.
  */
-public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
+public class FileServerAsyncTask extends AsyncTask<Void, Void, Void> {
 
     private Activity context;
     private TextView statusText;
-
+    private String result="";
     public FileServerAsyncTask(Activity context, View statusText) {
         this.context = context;
         this.statusText = (TextView) statusText;
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    protected Void doInBackground(Void... params) {
         try {
 
             /**
@@ -45,47 +47,48 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
              * call blocks until a connection is accepted from a client
              */
             ServerSocket serverSocket = new ServerSocket(8888);
-            Socket client = serverSocket.accept();
+            while (true) {
+                Socket client = serverSocket.accept();
+                InputStream inputstream = client.getInputStream();
+                BufferedReader input =
+                        new BufferedReader(new InputStreamReader(inputstream));
+                result = input.readLine();
+                if (result != null) {
 
-            InputStream inputstream = client.getInputStream();
-            BufferedReader input =
-                    new BufferedReader(new InputStreamReader(inputstream));
-            String answer = input.readLine();
+                    Message msg=Message.fromJson(result);
+                    messageHandler.sendEmptyMessage(0);
+                    if(msg.getType().equals(MessageType.handshake))
+                    {
 
+                        ConnectionManager.getManager().setIpAddress(msg.getSender().getIPAddress(),msg.getSender().getMacAddress());
+                    }
+                    if(msg.getType().equals(10))
+                    {
+                        break;
+                    }
+                }
+
+            }
             serverSocket.close();
-            return answer;
+            return null;
         } catch (IOException e) {
             return null;
         }
     }
 
+    private Handler messageHandler = new Handler() {
+        public void handleMessage(android.os.Message msg) {
+            super.handleMessage(msg);
+            statusText.setText(result);
+        }
+    };
+
     /**
      * Start activity that can handle the JPEG image
      */
     @Override
-    protected void onPostExecute(String result) {
-        if (result != null) {
-            new AlertDialog.Builder(context)
-                    .setTitle("Delete entry")
-                    .setMessage(result)
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // continue with delete
-                        }
-                    })
-                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // do nothing
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
-            Message msg=Message.fromJson(result);
-            if(msg.getType().equals(MessageType.handshake))
-            {
-                ConnectionManager.getManager().setIpAddress(msg.getSender().getIPAddress(),msg.getSender().getMacAddress());
-            }
-        }
+    protected void onPostExecute(Void result) {
+
     }
 
 

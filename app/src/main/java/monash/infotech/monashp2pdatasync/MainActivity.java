@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -93,6 +94,13 @@ public class MainActivity extends Activity {
                         Toast.makeText(MainActivity.this, "onFailure discoverPeers", Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
+        ((Button)findViewById(R.id.getInfo)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((TextView)findViewById(R.id.local)).setText(cm.getLocalDevice().getIPAddress()+","+cm.getLocalDevice().getMacAddress()+","+cm.getLocalDevice().getDeviceName()+","+cm.getLocalDevice().isConnected());
+                ((TextView)findViewById(R.id.connected)).setText(cm.getConnectedDevice().getIPAddress()+","+cm.getConnectedDevice().getMacAddress()+","+cm.getConnectedDevice().getDeviceName()+","+cm.getConnectedDevice().isConnected());
             }
         });
     }

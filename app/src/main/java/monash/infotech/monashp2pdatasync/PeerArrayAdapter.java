@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Calendar;
 import java.util.List;
 
 import monash.infotech.monashp2pdatasync.connectivity.ConnectionManager;
@@ -56,7 +57,7 @@ public class PeerArrayAdapter extends ArrayAdapter<WifiP2pDevice> {
             @Override
             public void onClick(View v) {
                 if (button.getText().toString().equals("Sync")) {
-                    Message m=new Message(0, MessageType.ping,null,null,"ping");
+                    Message m=new Message(0, MessageType.ping,null,null,"ping"+ Calendar.getInstance().getTimeInMillis());
                     cm.sendFile(device,m.toJson());
                 } else {
                     cm.connect(device);

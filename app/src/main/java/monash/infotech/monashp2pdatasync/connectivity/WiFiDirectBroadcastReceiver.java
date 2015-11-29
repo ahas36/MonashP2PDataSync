@@ -54,7 +54,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         super();
         this.mManager = manager;
         this.mChannel = channel;
-        this.mActivity = (MainActivity)activity;
+        this.mActivity = (MainActivity) activity;
     }
 
     @Override
@@ -86,6 +86,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             // Respond to new connection or disconnections
             Toast.makeText(context, "connected/disconnected", Toast.LENGTH_LONG).show();
             if (mManager == null) {
+                ConnectionManager.getManager().clearInfo();
                 return;
             }
 
@@ -103,9 +104,11 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
                 // Respond to this device's wifi state changing
+                ConnectionManager.getManager().clearInfo();
             }
         }
     }
+
     WifiP2pManager.ConnectionInfoListener connectionListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo info) {
@@ -114,13 +117,16 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             // After the group negotiation, we can determine the group owner.
             if (info.groupFormed && info.isGroupOwner) {
+               // ConnectionManager.getManager().updateLocalPeer();
                 // Do whatever tasks are specific to the group owner.
                 // One common case is creating a server thread and accepting
                 // incoming connections.
                 //mActivity.cm.setGroupOwnerIPAddress(groupOwnerAddress);
             } else if (info.groupFormed) {
-                mActivity.cm.setGroupOwnerIPAddress(groupOwnerAddress.getHostAddress());
-                mActivity.cm.sendHandshakeMsg();
+                if (!ConnectionManager.getManager().getLocalDevice().getIPAddress().equals(groupOwnerAddress.getHostAddress())) {
+                    ConnectionManager.getManager().setIpAddress(groupOwnerAddress.getHostAddress(), "");
+                    ConnectionManager.getManager().sendHandshakeMsg();
+                }
                 // The other device acts as the client. In this case,
                 // you'll want to create a client thread that connects to the group
                 // owner.

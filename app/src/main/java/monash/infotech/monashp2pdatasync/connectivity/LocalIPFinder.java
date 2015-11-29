@@ -37,8 +37,10 @@ public class LocalIPFinder {
 
     public static String getLocalDottedDecimalIPAddress() {
         //convert to dotted decimal notation:
-        byte[] ipAddr=getLocalIPAddress();
 
+        byte[] ipAddr=getLocalIPAddress();
+        if(ipAddr==null)
+            return "";
         String ipAddrStr = "";
         for (int i=0; i<ipAddr.length; i++) {
             if (i > 0) {
