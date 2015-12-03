@@ -1,9 +1,7 @@
-package monash.infotech.monashp2pdatasync;
+package monash.infotech.monashp2pdatasync.app;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
@@ -26,9 +24,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import monash.infotech.monashp2pdatasync.R;
 import monash.infotech.monashp2pdatasync.connectivity.ConnectionManager;
 
-public class MainActivity extends Activity {
+public class HomeActivity extends Activity {
     //popup window for showing peers
     PopupWindow pwindo;
     //instance of connection manager
@@ -51,7 +50,7 @@ public class MainActivity extends Activity {
                 cm.startPeerDiscovery(new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        LayoutInflater inflater = (LayoutInflater) MainActivity.this
+                        LayoutInflater inflater = (LayoutInflater) HomeActivity.this
                                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                         View layout = inflater.inflate(R.layout.sync_popup,
                                 (ViewGroup) findViewById(R.id.popup_element));
@@ -91,7 +90,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFailure(int reasonCode) {
-                        Toast.makeText(MainActivity.this, "onFailure discoverPeers", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(HomeActivity.this, "onFailure discoverPeers", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -119,7 +118,7 @@ public class MainActivity extends Activity {
             }
         }
         PeerArrayAdapter itemsAdapter =
-                new PeerArrayAdapter(MainActivity.this,filteredPeers);
+                new PeerArrayAdapter(HomeActivity.this,filteredPeers);
         ((ListView)pwindo.getContentView().findViewById(R.id.PeersList)).setAdapter(itemsAdapter);
     }
 

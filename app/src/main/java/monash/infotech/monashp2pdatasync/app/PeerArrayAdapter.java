@@ -1,4 +1,4 @@
-package monash.infotech.monashp2pdatasync;
+package monash.infotech.monashp2pdatasync.app;
 
 import android.content.Context;
 import android.net.wifi.WpsInfo;
@@ -16,6 +16,7 @@ import android.widget.Toast;
 import java.util.Calendar;
 import java.util.List;
 
+import monash.infotech.monashp2pdatasync.R;
 import monash.infotech.monashp2pdatasync.connectivity.ConnectionManager;
 import monash.infotech.monashp2pdatasync.messaging.Message;
 import monash.infotech.monashp2pdatasync.messaging.MessageType;

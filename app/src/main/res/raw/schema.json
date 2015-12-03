@@ -1,0 +1,1273 @@
+ {
+        "form": [
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "textarea",
+                "key": "__changeComments",
+                "fieldDataAttributes": {
+                  "showOnReadOnly": false,
+                  "showOnNew": false
+                },
+                "placeholder": "Enter an optional note to appear in the activity history",
+                "htmlClass": "registerItem_textarea",
+                "fieldHtmlClass": "note"
+              }
+            ],
+            "title": "Record Notes"
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "asset",
+                "key": "assetId",
+                "fieldDataAttributes": {
+                  "dataUrl": "/api/json/asset",
+                  "dataListFormat": "<%-name%> <div class=\"meta\">Code: <%-code%></div>",
+                  "dataEntryFormat": "<ul><li><%-name%></li><li>Code: <%-code%></li></ul>",
+                  "dataQueryParam": "name",
+                  "dataSelectableClasses": "[{\"id\":\"Asset_Property\",\"title\":\"Property\",\"description\":\"Property\",\"groupId\":\"2\"}]",
+                  "dataSelectableClassOptGroups": "{\"Assets\":{\"__ALL__\":{\"id\":\"__ALL__\",\"title\":\"(All asset types)\",\"description\":\"All asset types\"},\"Asset_Property\":{\"id\":\"Asset_Property\",\"title\":\"Property\",\"description\":\"Property\",\"groupId\":\"2\",\"isDefault\":true}}}"
+                },
+                "htmlClass": "registerItem_asset",
+                "title": "Location"
+              },
+              {
+                "type": "select",
+                "key": "status",
+                "fieldDataAttributes": [],
+                "htmlClass": "registerItem_select",
+                "title": "Status",
+                "enums": [
+                  1,
+                  2,
+                  3
+                ],
+                "titleMap": {
+                  "1": "New",
+                  "2": "Inspection Required",
+                  "3": "Inspection Completed"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "tagText",
+                "key": "tags",
+                "fieldDataAttributes": {
+                  "dataFieldType": "tags",
+                  "dataItemClass": "Recovery_EnvironmentalHealth",
+                  "dataLinkUrl": "/register/list/index/register/environmentalHealth/tag/%s/cleantags/1"
+                },
+                "htmlClass": "registerItem_tagtext",
+                "description": "&ndash; (Start typing for suggestions, use comma to separate tags.  New tags will automatically be created)",
+                "title": "Tags",
+                "fieldHtmlClass": "taggable"
+              },
+              {
+                "type": "map",
+                "key": "location",
+                "fieldDataAttributes": [],
+                "htmlClass": "registerItem_map",
+                "title": "Location"
+              }
+            ],
+            "title": "Workflow",
+            "expandable": false,
+            "region": "meta",
+            "order": 141002
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "select",
+                "key": "eventId",
+                "fieldDataAttributes": {
+                  "data-no-placeholder": true
+                },
+                "htmlClass": "registerItem_select",
+                "title": "Event",
+                "enums": [
+                  106,
+                  107
+                ],
+                "titleMap": {
+                  "106": " Exercise JEWELL - Preparation Training",
+                  "107": " NEW VERSION TESTING AND TRAINING "
+                },
+                "groups": {
+                  "Active": {
+                    "label": "Active",
+                    "enums": [
+                      106,
+                      107
+                    ]
+                  }
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Advanced",
+            "expandable": true,
+            "isExpanded": false,
+            "region": "meta",
+            "order": 141099
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "hidden",
+                "key": "geo",
+                "fieldDataAttributes": {
+                  "isMapGeoStringElement": true,
+                  "dataSerializeToJson": true
+                }
+              },
+              {
+                "type": "hidden",
+                "key": "type"
+              },
+              {
+                "type": "hidden",
+                "key": "itemSchemaName",
+                "fieldDataAttributes": []
+              },
+              {
+                "type": "hidden",
+                "key": "__operationTimestamp",
+                "fieldDataAttributes": {
+                  "dataUseCurrentDate": true
+                }
+              },
+              {
+                "type": "radio",
+                "key": "inspectionAccessibility",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is the property accessible for inspection?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "General",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271010
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "textarea",
+                "key": "utilitiesDisruption",
+                "fieldDataAttributes": [],
+                "htmlClass": "registerItem_textarea",
+                "title": "Details and duration of disruption(s)"
+              },
+              {
+                "type": "radio",
+                "key": "electricityOnsite",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Electricity functional?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "gasOnsite",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Gas available?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "telephoneOnsite",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Telephone functional?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "waterOnsite",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Water available?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Utilities",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271020
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "isFloodDamagePresent",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there extensive flood damage?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "floodAffectedItems",
+                "fieldDataAttributes": {
+                  "dataConditional": "isFloodDamagePresent:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "List items and areas affected"
+              },
+              {
+                "type": "radio",
+                "key": "isOutbuildingsDamaged",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Have the outbuildings been damaged?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "isDwellingDamaged",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Has the dwelling been damaged?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Property Damage",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271030
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "isPotentialHazardsPresent",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "description": "For example: hazardous chemicals, Gas cylinders, swimming pool",
+                "title": "Are there potential hazards onsite?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "treatedPine",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Treated pine",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "treatedPineComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "treatedPine:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Treated Pine)"
+              },
+              {
+                "type": "radio",
+                "key": "roofCladding",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Roof Cladding",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "roofCladdingComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "roofCladding:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Roof Cladding)"
+              },
+              {
+                "type": "radio",
+                "key": "chimney",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Chimney",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "chimneyComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "chimney:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Chimney)"
+              },
+              {
+                "type": "radio",
+                "key": "frame",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Frame",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "frameComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "frame:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Frame)"
+              },
+              {
+                "type": "radio",
+                "key": "wall",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Wall",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "wallComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "wall:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Wall)"
+              },
+              {
+                "type": "radio",
+                "key": "waterTank",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Water Tank",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "waterTankComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "waterTank:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Water Tank)"
+              },
+              {
+                "type": "radio",
+                "key": "gasCylinders",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Gas Cylinders",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "gasCylindersComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "gasCylinders:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Gas Cylinders)"
+              },
+              {
+                "type": "radio",
+                "key": "isAsbestosPresent",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Asbestos",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "asbestosComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "isAsbestosPresent:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Asbestos)"
+              },
+              {
+                "type": "radio",
+                "key": "overhangingTrees",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Overhanging Trees",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "overhangingTreesComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "overhangingTrees:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Overhanging Trees)"
+              },
+              {
+                "type": "radio",
+                "key": "swimmingPool",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Swimming Pool",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "swimmingPoolComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "swimmingPool:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Swimming Pool)"
+              },
+              {
+                "type": "radio",
+                "key": "hazardousChemicals",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Hazardous Chemicals",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "hazardousChemicalsComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "hazardousChemicals:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Hazardous Chemicals)"
+              },
+              {
+                "type": "radio",
+                "key": "otherRisks",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotentialHazardsPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "inline-label hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Other Structural Issues",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "textarea",
+                "key": "otherRisksComments",
+                "fieldDataAttributes": {
+                  "dataConditional": "otherRisks:yes"
+                },
+                "htmlClass": "hidden",
+                "title": "Additional Comments (Other Structural Issues)"
+              },
+              {
+                "type": "textarea",
+                "key": "isAdditionalSafetyProblemsPresent",
+                "fieldDataAttributes": [],
+                "htmlClass": "registerItem_textarea",
+                "title": "Are there any additional health or sanitation problems?"
+              }
+            ],
+            "title": "Safety",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271040
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "toiletPresent",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there an operational toilet onsite?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "sewerOperational",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is the sewer operational?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "septicSystemOperational",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is the septic system operational?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "text",
+                "key": "septicSystemDetails",
+                "fieldDataAttributes": {
+                  "dataConditional": "septicSystemOperational:no"
+                },
+                "htmlClass": "hidden",
+                "title": "Septic system details"
+              },
+              {
+                "type": "radio",
+                "key": "septicSystemRepairsRequired",
+                "fieldDataAttributes": {
+                  "dataConditional": "septicSystemOperational:no"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "What is required for the septic system to function?",
+                "enums": [
+                  "electricity",
+                  "pumpReplacement",
+                  "irrigationMaintenance",
+                  "treatmentPlantService",
+                  "reconstructionsNewInstall"
+                ],
+                "titleMap": {
+                  "electricity": "Electricity",
+                  "pumpReplacement": "Pump replacement",
+                  "irrigationMaintenance": "Irrigation maintenance",
+                  "treatmentPlantService": "Treatment plant service",
+                  "reconstructionsNewInstall": "Reconstruction/new install"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "isSepticAndEffluentLinesOperational",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Are the septic and effluent lines operational?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "typeOfWastewaterIrrigationInUse",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "What type of waste water system and irrigation is used?",
+                "enums": [
+                  "primary",
+                  "secondary",
+                  "splitSystem",
+                  "ags",
+                  "irrigation",
+                  "offsite",
+                  "trenches",
+                  "subsurface"
+                ],
+                "titleMap": {
+                  "primary": "Primary",
+                  "secondary": "Secondary",
+                  "splitSystem": "Split System",
+                  "ags": "Ags",
+                  "irrigation": "Irrigation",
+                  "offsite": "Offsite",
+                  "trenches": "Trenches",
+                  "subsurface": "Subsurface"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Waste Water",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271050
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "isPotableWaterSupplyPresent",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there an operational potable water supply to the property?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "mainPotableWaterSource",
+                "fieldDataAttributes": {
+                  "dataConditional": "isPotableWaterSupplyPresent:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Main potable water source",
+                "enums": [
+                  "mains",
+                  "tank",
+                  "bore",
+                  "surface",
+                  "other"
+                ],
+                "titleMap": {
+                  "mains": "Mains",
+                  "tank": "Tank",
+                  "bore": "Bore",
+                  "surface": "Surface",
+                  "other": "Other"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "text",
+                "key": "otherPotableWaterSource",
+                "fieldDataAttributes": {
+                  "dataConditional": "mainPotableWaterSource:other"
+                },
+                "htmlClass": "hidden",
+                "title": "Specify 'other' potable water source"
+              },
+              {
+                "type": "radio",
+                "key": "isWaterTestingRequired",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is water testing required?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "isTankOrSurfaceWaterUsedForIrrigation",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Are tank or surface waters used for stock or crop irrigation?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Water Supply",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271060
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "cleanupDeadAnimals",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there a requirement for removal of dead stock/domestic animals/wildlife?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "cleanupPutrescibleMaterials",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there a requirement for removal of putrescible materials?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "cleanupRefridgeratedFood",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there a requirement for removal of food from refridgerators/freezers?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Cleanup & Removal",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271070
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "radio",
+                "key": "isTempAccommodationRequired",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is temporary onsite accommodation required?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "caravanAlreadyOnsite",
+                "fieldDataAttributes": {
+                  "dataConditional": "isTempAccommodationRequired:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "form-group-half-width form-group-inline form-group-new-line hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there a caravan already onsite?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "caravanPowerAvailable",
+                "fieldDataAttributes": {
+                  "dataConditional": "caravanAlreadyOnsite:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "form-group-inline hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Power connected?",
+                "enums": [
+                  "yes",
+                  "no"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "caravanToiletAvailable",
+                "fieldDataAttributes": {
+                  "dataConditional": "caravanAlreadyOnsite:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "form-group-inline hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Toilet operational?",
+                "enums": [
+                  "yes",
+                  "no"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "suitableAreaForCaravan",
+                "fieldDataAttributes": {
+                  "dataConditional": "caravanAlreadyOnsite:no"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Is there a suitable area for a caravan?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "radio",
+                "key": "clearingRequiredForCaravan",
+                "fieldDataAttributes": {
+                  "dataConditional": "suitableAreaForCaravan:yes"
+                },
+                "placeholder": "Please Select",
+                "htmlClass": "form-group-inline hidden",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Clearing required for caravan?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              },
+              {
+                "type": "number",
+                "key": "clearingSizeForCaravan",
+                "fieldDataAttributes": {
+                  "dataConditional": "clearingRequiredForCaravan:yes"
+                },
+                "htmlClass": "form-group-inline hidden",
+                "title": "Approximate clearing quantity (square metres)"
+              },
+              {
+                "type": "radio",
+                "key": "sanitaryContractorRequired",
+                "fieldDataAttributes": [],
+                "placeholder": "Please Select",
+                "htmlClass": "registerItem_radio",
+                "fieldHtmlClass": "radio-inline",
+                "title": "Sanitary contractor required?",
+                "enums": [
+                  "yes",
+                  "no",
+                  "na"
+                ],
+                "titleMap": {
+                  "yes": "Yes",
+                  "no": "No",
+                  "na": "Unknown"
+                },
+                "attributeMap": []
+              }
+            ],
+            "title": "Temporary Onsite Accommodation",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271080
+          },
+          {
+            "type": "fieldset",
+            "items": [
+              {
+                "type": "textarea",
+                "key": "additionalComments",
+                "fieldDataAttributes": {
+                  "dataFieldType": "rte"
+                },
+                "htmlClass": "registerItem_textarea",
+                "title": ""
+              }
+            ],
+            "title": "Additional Information",
+            "expandable": false,
+            "isExpanded": true,
+            "region": "main",
+            "order": 271090
+          }
+        ]
+ }

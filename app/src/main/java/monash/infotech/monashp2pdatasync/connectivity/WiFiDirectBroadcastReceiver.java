@@ -15,7 +15,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import monash.infotech.monashp2pdatasync.MainActivity;
+import monash.infotech.monashp2pdatasync.app.HomeActivity;
 
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi p2p events.
@@ -24,7 +24,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private MainActivity mActivity;
+    private HomeActivity mActivity;
     private List<WifiP2pDevice> peers = new ArrayList();
 
     private WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
@@ -54,7 +54,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         super();
         this.mManager = manager;
         this.mChannel = channel;
-        this.mActivity = (MainActivity) activity;
+        this.mActivity = (HomeActivity) activity;
     }
 
     @Override
