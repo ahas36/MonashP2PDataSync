@@ -1,6 +1,11 @@
 package monash.infotech.monashp2pdatasync.messaging;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DatabaseField;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import monash.infotech.monashp2pdatasync.entities.Peer;
 
@@ -8,12 +13,23 @@ import monash.infotech.monashp2pdatasync.entities.Peer;
  * Created by john on 11/27/2015.
  */
 public class Message {
+    @Expose
+    @DatabaseField
     private MessageType type;
+    @Expose
+    @DatabaseField
     private Peer sender;
+    @Expose
+    @DatabaseField
     private Peer reciver;
+    @Expose
+    @DatabaseField(canBeNull = false)
     private String msgBody;
+    @Expose
+    @DatabaseField
     private int msgId;
-
+    @Expose
+    private List<String> files;
     public static Message fromJson(String json)
     {
         Gson g=new Gson();
@@ -76,5 +92,17 @@ public class Message {
 
     public void setMsgId(int msgId) {
         this.msgId = msgId;
+    }
+
+    public void addFile(String file) {
+        if(files==null)
+        {
+            files=new ArrayList<>();
+        }
+        files.add(file);
+    }
+
+    public List<String> getFiles() {
+        return files;
     }
 }

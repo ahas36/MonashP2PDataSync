@@ -31,5 +31,4 @@
         android:text="Register"
         android:id="@+id/BtnRegister" />
 
-
 </LinearLayout>

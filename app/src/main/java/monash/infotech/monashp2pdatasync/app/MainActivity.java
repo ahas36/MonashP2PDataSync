@@ -3,8 +3,8 @@ package monash.infotech.monashp2pdatasync.app;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+
+import monash.infotech.monashp2pdatasync.messaging.MessageCreator;
 
 public class MainActivity extends Activity {
 
@@ -20,7 +20,8 @@ public class MainActivity extends Activity {
         }
         else
         {
-            Intent intent = new Intent(context, HomeActivity.class);
+            MessageCreator.init(context.getToken());
+            Intent intent = new Intent(context, MainFragmentActivity.class);
             startActivity(intent);
             finish();
         }

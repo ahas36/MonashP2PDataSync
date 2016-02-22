@@ -20,8 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import monash.infotech.monashp2pdatasync.R;
+import monash.infotech.monashp2pdatasync.connectivity.rest.RestClient;
 import monash.infotech.monashp2pdatasync.entities.UserRole;
-import monash.infotech.monashp2pdatasync.restclient.RestClient;
+import monash.infotech.monashp2pdatasync.entities.context.UserContext;
 import monash.infotech.monashp2pdatasync.security.Security;
 
 public class Register extends Activity {
@@ -77,11 +78,18 @@ public class Register extends Activity {
                                 ((P2PApplicationContext)getApplicationContext()).setToken(jsonObj.getString("token"));
                                 ((P2PApplicationContext)getApplicationContext()).setKey(jsonObj.getJSONObject("key").toString());
                                 Security.init(new BigInteger(jsonObj.getJSONObject("key").getString("mod")), new BigInteger(jsonObj.getJSONObject("key").getString("exp")));
-                                Intent intent = new Intent(Register.this, HomeActivity.class);
+                                //init user context
+                                //decrypt token
+                                String decryptToken = Security.getInstance().decrypt(jsonObj.getString("token"));
+                                //convert token to json object
+                                JSONObject jsonToken=new JSONObject(decryptToken);
+                                UserContext uc=new UserContext(jsonToken.getInt("userId"), monash.infotech.monashp2pdatasync.entities.context.UserRole.valueOf(jsonToken.getString("role")));
+                                ((P2PApplicationContext)getApplicationContext()).setUserContext(uc);
+                                Intent intent = new Intent(Register.this, MainFragmentActivity.class);
                                 startActivity(intent);
                                 finish();
                             } catch (JSONException e) {
-                                e.printStackTrace();
+                                android.util.Log.d("Ali", e.getMessage());
                             }
 
                         }

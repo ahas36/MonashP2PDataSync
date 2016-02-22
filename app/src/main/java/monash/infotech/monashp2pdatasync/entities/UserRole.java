@@ -1,7 +1,6 @@
 package monash.infotech.monashp2pdatasync.entities;
 
 import java.io.Serializable;
-import java.util.List;
 
 
 /**

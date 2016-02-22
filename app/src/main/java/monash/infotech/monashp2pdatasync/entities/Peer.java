@@ -1,5 +1,7 @@
 package monash.infotech.monashp2pdatasync.entities;
 
+import monash.infotech.monashp2pdatasync.entities.context.UserContext;
+
 /**
  * Created by john on 11/26/2015.
  */
@@ -9,7 +11,8 @@ public class Peer {
     private String deviceName;
     private String macAddress;
     private boolean isConnected;
-
+    private UserContext userContext;
+    private long lastSync;
     public Peer(String deviceName, String macAddress,String IPAddress, boolean isConnected) {
         this.IPAddress = IPAddress;
         this.deviceName = deviceName;
@@ -58,6 +61,22 @@ public class Peer {
 
     public void setIsConnected(boolean isConnected) {
         this.isConnected = isConnected;
+    }
+
+    public UserContext getUserContext() {
+        return userContext;
+    }
+
+    public void setUserContext(UserContext userContext) {
+        this.userContext = userContext;
+    }
+
+    public long getLastSync() {
+        return lastSync;
+    }
+
+    public void setLastSync(long lastSync) {
+        this.lastSync = lastSync;
     }
 
     @Override

@@ -10,6 +10,8 @@ import org.json.JSONObject;
 
 import java.math.BigInteger;
 
+import monash.infotech.monashp2pdatasync.data.db.DatabaseManager;
+import monash.infotech.monashp2pdatasync.entities.context.UserContext;
 import monash.infotech.monashp2pdatasync.security.Security;
 
 /**
@@ -19,15 +21,15 @@ public class P2PApplicationContext extends android.app.Application {
 
     private String token;
     private String key;
+    private static UserContext userContext;
     SharedPreferences sp;
 
     @Override
     public void onCreate()
     {
         super.onCreate();
-
+        DatabaseManager.init(getApplicationContext());
         sp = getSharedPreferences("P2P", Context.MODE_PRIVATE);
-        sp.edit().clear().commit();
         token=sp.getString("token","");
         key=sp.getString("key","");
         if(!key.isEmpty())
@@ -55,9 +57,9 @@ public class P2PApplicationContext extends android.app.Application {
         JSONObject jsonObj = null;
         try {
             jsonObj = new JSONObject(key);
-            Security.init(new BigInteger(jsonObj.getJSONObject("key").getString("mod")),new BigInteger(jsonObj.getJSONObject("key").getString("exp")));
+            Security.init(new BigInteger(jsonObj.getString("mod")),new BigInteger(jsonObj.getString("exp")));
         } catch (JSONException e) {
-            e.printStackTrace();
+            android.util.Log.d("Ali", e.getMessage());
         }
 
     }
@@ -68,4 +70,23 @@ public class P2PApplicationContext extends android.app.Application {
         edit.commit();
         this.key = key;
     }
+
+    public void setUserContext(UserContext uc) {
+        Gson gson=new Gson();
+        SharedPreferences.Editor edit = sp.edit();
+        edit.putString("uc",gson.toJson(uc));
+        edit.commit();
+        P2PApplicationContext.userContext=uc;
+    }
+    public UserContext gettUserContext() {
+        if(P2PApplicationContext.userContext==null)
+        {
+            Gson gson=new Gson();
+            String userContextText=sp.getString("uc","");
+            P2PApplicationContext.userContext=gson.fromJson(userContextText,UserContext.class);
+        }
+        return P2PApplicationContext.userContext;
+    }
+
+
 }

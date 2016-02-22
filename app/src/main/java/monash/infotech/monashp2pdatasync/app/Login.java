@@ -4,14 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +16,10 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 
 import monash.infotech.monashp2pdatasync.R;
-import monash.infotech.monashp2pdatasync.restclient.RestClient;
+import monash.infotech.monashp2pdatasync.connectivity.rest.RestClient;
+import monash.infotech.monashp2pdatasync.entities.context.UserContext;
+import monash.infotech.monashp2pdatasync.entities.context.UserRole;
+import monash.infotech.monashp2pdatasync.messaging.MessageCreator;
 import monash.infotech.monashp2pdatasync.security.Security;
 
 public class Login extends Activity {
@@ -51,12 +51,20 @@ public class Login extends Activity {
                                 JSONObject jsonObj = new JSONObject(result);
                                 ((P2PApplicationContext)getApplicationContext()).setToken(jsonObj.getString("token"));
                                 ((P2PApplicationContext)getApplicationContext()).setKey(jsonObj.getJSONObject("key").toString());
-                                Security.init(new BigInteger(jsonObj.getJSONObject("key").getString("mod")),new BigInteger(jsonObj.getJSONObject("key").getString("exp")));
-                                Intent intent = new Intent(Login.this, HomeActivity.class);
+                                Security.init(new BigInteger(jsonObj.getJSONObject("key").getString("mod")), new BigInteger(jsonObj.getJSONObject("key").getString("exp")));
+                                MessageCreator.init(jsonObj.getString("token"));
+                                //init user context
+                                //decrypt token
+                                String decryptToken = Security.getInstance().decrypt(jsonObj.getString("token"));
+                                //convert token to json object
+                                JSONObject jsonToken=new JSONObject(decryptToken);
+                                UserContext uc=new UserContext(jsonToken.getInt("userId"), UserRole.valueOf(jsonToken.getString("role")));
+                                ((P2PApplicationContext)getApplicationContext()).setUserContext(uc);
+                                Intent intent = new Intent(Login.this, MainFragmentActivity.class);
                                 startActivity(intent);
                                 finish();
                             } catch (JSONException e) {
-                                e.printStackTrace();
+                                android.util.Log.d("Ali", e.getMessage());
                             }
 
                         }
