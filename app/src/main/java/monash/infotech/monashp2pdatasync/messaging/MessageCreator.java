@@ -65,7 +65,7 @@ public class MessageCreator {
         SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(reciver.getMacAddress());
         long lastSync = syncHistory == null ? 0 : syncHistory.getSynTime();
         msgBody.put("lastSync",lastSync);
-        msg.setMsgBody(token);
+        msg.setMsgBody(msgBody.toString());
         return msg;
     }
 

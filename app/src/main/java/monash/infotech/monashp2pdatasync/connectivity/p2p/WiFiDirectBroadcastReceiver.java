@@ -101,10 +101,11 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 if(!ConnectionManager.getManager().getLocalDevice().getMacAddress().equalsIgnoreCase(p2pGroupInfo.deviceAddress)) {
                     Peer p = new Peer(p2pGroupInfo.deviceName, p2pGroupInfo.deviceAddress);
                     ConnectionManager.getManager().setConnectedPeer(p);
+                }
                     // We are connected with the other device, request connection
                     // info to find group owner IP
                     mManager.requestConnectionInfo(mChannel, connectionListener);
-                }
+
             } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
                 // Respond to this device's wifi state changing
 

@@ -70,7 +70,7 @@ public class LocalIPFinder {
                         strBuilder.deleteCharAt(strBuilder.length()-1);
                     }
 
-                    return strBuilder.toString();
+                    return strBuilder.toString().toLowerCase();
                 }
 
             }

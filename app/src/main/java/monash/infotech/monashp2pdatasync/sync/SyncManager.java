@@ -64,7 +64,13 @@ public class SyncManager {
         ConnectionManager.getManager().disconnect();
     }
 
-    public static void handleSyncRequest(Message msg) throws SQLException, JSONException {
+    public static void handleSyncResponse(Message msg) throws SQLException, JSONException {
+        JSONObject jsonMsg = new JSONObject(msg.getMsgBody());
+
+    }
+
+
+    public static void handleSyncRequest(Message msg) throws SQLException, JSONException, IllegalAccessException {
         Gson gson = new Gson();
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<Item, Integer> itemDao = DatabaseManager.getItemDao();
@@ -75,96 +81,99 @@ public class SyncManager {
         FormItem[] oldFormItems = null;
         for (int i = 0; i < json.length(); i++) {
             JSONObject form = json.getJSONObject(i);
-           // try {
-                Form oldForm = formDao.queryForId(form.getString("form_id"));
-                FormType formType = DatabaseManager.getFormTypeDao().queryForId(form.getInt("form_type"));
-                if (oldForm == null) {
-                    if (form.has("semanticKey")) {
-                        JSONObject semanticKeyObject = form.getJSONObject("semanticKey");
-                        String semanticKeyQuery = "select form_id from (select form_id,group_concat(value) as vals,group_concat(item_id)" +
-                                " as itemIds from (select form_id,value,item_id from formitem where item_id in (" + semanticKeyObject.getString("ids") + ") order by item_id) group by form_id) " +
-                                "where vals='" + semanticKeyObject.getString("vals") + "' and itemIds='" + semanticKeyObject.getString("ids") + "'";
-                        try {
-                            String tempFormId = formItemDao.queryRaw(semanticKeyQuery).getFirstResult()[0];
-                            oldForm = formDao.queryForId(tempFormId);
-                        } catch (Exception e) {
-                            //it's a new form
-                        }
+            //find the form with id
+            Form oldForm = formDao.queryForId(form.getString("form_id"));
+            FormType formType = DatabaseManager.getFormTypeDao().queryForId(form.getInt("form_type"));
+            if (oldForm == null) {
+                //find the form by semantic key
+                if (form.has("semanticKey")) {
+                    JSONObject semanticKeyObject = form.getJSONObject("semanticKey");
+                    String semanticKeyQuery = "select form_id from (select form_id,group_concat(value) as vals,group_concat(item_id)" +
+                            " as itemIds from (select form_id,value,item_id from formitem where item_id in (" + semanticKeyObject.getString("ids") + ") order by item_id) group by form_id) " +
+                            "where vals='" + semanticKeyObject.getString("vals") + "' and itemIds='" + semanticKeyObject.getString("ids") + "'";
+                    try {
+                        String tempFormId = formItemDao.queryRaw(semanticKeyQuery).getFirstResult()[0];
+                        oldForm = formDao.queryForId(tempFormId);
+                    } catch (Exception e) {
+                        //it's a new form
                     }
                 }
-                if (oldForm == null) {
-                    Form newForm = new Form();
-                    newForm.setFormId(form.getString("form_id"));
-                    newForm.setFormType(formType);
-                    formDao.create(newForm);
+            }
+            //if form not exist, create a new form and add all the items
+            if (oldForm == null) {
+                Form newForm = new Form();
+                newForm.setFormId(form.getString("form_id"));
+                newForm.setFormType(formType);
+                formDao.create(newForm);
 
-                    oldFormItems = new FormItem[]{};
-                    for (int j = 0; j < form.getJSONArray("logs").length(); j++) {
-                        JSONObject logs = form.getJSONArray("logs").getJSONObject(j);
-                        for (int z = 0; z < logs.getJSONArray("log_items").length(); z++) {
-                            JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
-                            FormItem formItem = new FormItem(itemDao.queryForId(logItem.getInt("item_id")), newForm, logItem.getString("value"));
-                            formItemDao.create(formItem);
-                        }
+                oldFormItems = new FormItem[]{};
+                for (int j = 0; j < form.getJSONArray("logs").length(); j++) {
+                    JSONObject logs = form.getJSONArray("logs").getJSONObject(j);
+                    for (int z = 0; z < logs.getJSONArray("log_items").length(); z++) {
+                        JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
+                        FormItem formItem = new FormItem(itemDao.queryForId(logItem.getInt("item_id")), newForm, logItem.getString("value"));
+                        formItemDao.create(formItem);
+                    }
 
-                    }
-                    try {
-                        logger.log(newForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                }
+                logger.log(newForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
+
+            } else {
+                //if form exist, find the form items
+                if (oldForm.getItems() != null) {
+                    Object[] tempArray = oldForm.getItems().toArray();
+                    oldFormItems = Arrays.copyOf(tempArray, tempArray.length, FormItem[].class);
                 } else {
-                    if (oldForm.getItems() != null) {
-                        Object[] tempArray = oldForm.getItems().toArray();
-                        oldFormItems = Arrays.copyOf(tempArray, tempArray.length, FormItem[].class);
-                    } else {
-                        oldFormItems = new FormItem[]{};
-                    }
-                    for (int j = 0; j < form.getJSONArray("logs").length(); j++) {
-                        JSONObject logs = form.getJSONArray("logs").getJSONObject(j);
-
-                        for (int z = 0; z < logs.getJSONArray("log_items").length(); z++) {
-                            JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
-                            int id = logItem.getInt("item_id");
-                            Stream<FormItem> formItemOptional = Stream.of(oldForm.getItems()).filter(v -> v.getItem().getItemId() == id);
-                            Optional<FormItem> first = formItemOptional.findFirst();
-                            FormItem formItem = null;
-                            String value = "";
-                            if (first.isPresent()) {
-                                formItem = first.get();
-                                String query = "select l.logtimestamp from logitems li join log l on li.log_id= l.logid join (select li2.item_id,max(l2.logtimestamp) as max from logitems li2  join log l2 on li2.log_id= l2.logid  where l2.form_id='" + oldForm.getFormId() + "' and li2.item_id=" + formItem.getItem().getItemId() + " group by li2.item_id) q on q.item_id=li.item_id and q.max=l.logtimestamp where form_id='" + oldForm.getFormId() + "'";
-                                String[] firstResult = DatabaseManager.getLogItemDao().queryRaw(query).getFirstResult();
-                                String logTime = "0";
-                                if(firstResult!=null && firstResult.length>0) {
-                                    logTime=firstResult[0];
-                                }
-                                    Item item = DatabaseManager.getItemDao().queryForId(formItem.getItem().getItemId());
-                                if (!logs.has("log_type") || !logs.getString("log_type").equals(LogType.SYNC_REQUEST.name())) {
-                                    value = cr.resolve(new ConflictItem(logItem.getString("value"), logs.getLong("logtimestamp"), item, msg.getSender().getUserContext()), new ConflictItem(formItem.getValue(), Long.valueOf(logTime), item, msg.getReciver().getUserContext()));
-                                } else {
-                                    value = logItem.getString("value");
-                                }
-                            } else {
-                                formItem = new FormItem();
-                                formItem.setItem(itemDao.queryForId(id));
-                                formItem.setForm(oldForm);
-                                value = logItem.getString("value");
+                    oldFormItems = new FormItem[]{};
+                }
+                //for each log
+                for (int j = 0; j < form.getJSONArray("logs").length(); j++) {
+                    //get the log
+                    JSONObject logs = form.getJSONArray("logs").getJSONObject(j);
+                    //for each item in the log
+                    for (int z = 0; z < logs.getJSONArray("log_items").length(); z++) {
+                        //get the item
+                        JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
+                        //get the item id
+                        int id = logItem.getInt("item_id");
+                        //search for the item in the existing form
+                        Stream<FormItem> formItemOptional = Stream.of(oldForm.getItems()).filter(v -> v.getItem().getItemId() == id);
+                        Optional<FormItem> first = formItemOptional.findFirst();
+                        FormItem formItem = null;
+                        String value = "";
+                        //if item exist
+                        if (first.isPresent()) {
+                            formItem = first.get();
+                            //find item's last modified time
+                            String query = "select l.logtimestamp from logitems li join log l on li.log_id= l.logid join (select li2.item_id,max(l2.logtimestamp) as max from logitems li2  join log l2 on li2.log_id= l2.logid  where l2.form_id='" + oldForm.getFormId() + "' and li2.item_id=" + formItem.getItem().getItemId() + " group by li2.item_id) q on q.item_id=li.item_id and q.max=l.logtimestamp where form_id='" + oldForm.getFormId() + "'";
+                            String[] firstResult = DatabaseManager.getLogItemDao().queryRaw(query).getFirstResult();
+                            String logTime = "0";
+                            if (firstResult != null && firstResult.length > 0) {
+                                logTime = firstResult[0];
                             }
-                            formItem.setValue(value);
-                            formItemDao.createOrUpdate(formItem);
-                        }
+                            //find the item type
+                            Item item = DatabaseManager.getItemDao().queryForId(formItem.getItem().getItemId());
+                            //call the conflict resolver to resolve the conflict if its needed and compute the new value
+                            value = cr.resolve(new ConflictItem(logItem.getString("value"), logs.getLong("logtimestamp"), item, msg.getSender().getUserContext()), new ConflictItem(formItem.getValue(), Long.valueOf(logTime), item, msg.getReciver().getUserContext()));
 
-                    }
-                    try {
-                        logger.log(oldForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                        } else {//if item not exist, create new item and insert
+                            formItem = new FormItem();
+                            formItem.setItem(itemDao.queryForId(id));
+                            formItem.setForm(oldForm);
+                            value = logItem.getString("value");
+                        }
+                        formItem.setValue(value);
+                        formItemDao.createOrUpdate(formItem);
                     }
 
                 }
- //           } catch (Exception e) {
-//                Log.d("ALI", e.getMessage());
-//            }
+                try {
+                    logger.log(oldForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
 
     }
