@@ -156,12 +156,13 @@ public class SyncManager {
                             //call the conflict resolver to resolve the conflict if its needed and compute the new value
                             value = cr.resolve(new ConflictItem(logItem.getString("value"), logs.getLong("logtimestamp"), item, msg.getSender().getUserContext()), new ConflictItem(formItem.getValue(), Long.valueOf(logTime), item, msg.getReciver().getUserContext()));
 
-                        } else {//if item not exist, create new item and insert
+                        } else {//if item not exist, create new item
                             formItem = new FormItem();
                             formItem.setItem(itemDao.queryForId(id));
                             formItem.setForm(oldForm);
                             value = logItem.getString("value");
                         }
+                        //insert or update the form item
                         formItem.setValue(value);
                         formItemDao.createOrUpdate(formItem);
                     }
