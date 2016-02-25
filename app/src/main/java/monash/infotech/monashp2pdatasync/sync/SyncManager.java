@@ -238,7 +238,7 @@ public class SyncManager {
 
 
     public static void handelSyncRequest(Message msg) throws IllegalAccessException, SQLException, JSONException {
-        List<HandleSyncResult> handleSyncResults = handleSync(new JSONArray(msg.getMsgBody()),msg.getSender(),msg.getReciver());
+        List<HandleSyncResult> handleSyncResults = handleSync(new JSONArray(msg.getMsgBody()), msg.getSender(), msg.getReciver());
         sendSyncRespond(handleSyncResults);
     }
 
@@ -273,5 +273,13 @@ public class SyncManager {
         Message msg = MessageCreator.createSyncEndMsg(response);
         //send
         connectionManager.sendFile(msg.toJson());
+    }
+    public static void sendSynFailMsg(String msg) {
+        ConnectionManager connectionManager = ConnectionManager.getManager();
+        SyncResponse response=new SyncResponse(SyncResponseType.FAIL,msg);
+        //generate sync end msg
+        Message message = MessageCreator.createSyncEndMsg(response);
+        //send
+        connectionManager.sendFile(message.toJson());
     }
 }

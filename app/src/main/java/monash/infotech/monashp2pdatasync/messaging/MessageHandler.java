@@ -15,47 +15,48 @@ import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
  */
 public class MessageHandler {
 
-    public static void HandleMessage(Message  message) throws JSONException, SQLException {
+    public static void HandleMessage(Message message) {
 
         ConnectionManager.getManager().logMsg(message);
-        switch (message.getType())
-        {
+        switch (message.getType()) {
             case handshake:
-                HandshakeManager.handleHandshake(message);
+                try {
+                    HandshakeManager.handleHandshake(message);
+                } catch (Exception e) {
+                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake");
+                }
                 break;
             case handshakeResponse:
-                HandshakeManager.handleHandshakeResponse(message);
-                break;
-            case ping:
+                try {
+                    HandshakeManager.handleHandshakeResponse(message);
+                }
+                catch (Exception e)
+                {
+                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake response");
+                }
                 break;
             case syncEnd:
                 try {
                     SyncManager.handelSynEndMsg(message);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
+                    SyncManager.sendSynFailMsg("failed to handel sync end msg");
+                    ConnectionManager.getManager().disconnect();
                     e.printStackTrace();
                 }
                 break;
             case syncRequest:
                 try {
                     SyncManager.handelSyncRequest(message);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
+                    SyncManager.sendSynFailMsg("failed to handle sync request");
                     e.printStackTrace();
                 }
                 break;
             case syncRespond:
                 try {
+                    SyncManager.sendSynFailMsg("failed to handle sync response");
                     SyncManager.handleSyncResponse(message);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;

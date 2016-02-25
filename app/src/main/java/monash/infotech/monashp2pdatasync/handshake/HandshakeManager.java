@@ -1,5 +1,7 @@
 package monash.infotech.monashp2pdatasync.handshake;
 
+import com.google.gson.Gson;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,23 +52,18 @@ public class HandshakeManager {
     }
 
 
-
     //handle an incoming handshake message
 
     public static boolean handleHandshake(Message msg) throws JSONException, SQLException {
-        JSONObject msgBody=new JSONObject(msg.getMsgBody());
+        JSONObject msgBody = new JSONObject(msg.getMsgBody());
         //read and decrypt token
-        String token=msgBody.getString("token");
-        long lastSync=msgBody.getLong("lastSync");
-        try {
-            if(!Security.getInstance().authenticate(msg.getSender().getUserContext(),token)) {
-                SyncManager.sendSynEndMsg(new SyncResponse(SyncResponseType.FAIL, "authentication faild"));
-                return false;
-            }
-        } catch (JSONException e) {
+        String token = msgBody.getString("token");
+        long lastSync = msgBody.getLong("lastSync");
+        if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
+            sendHandshakeFailMessage("authentication failed");
             return false;
-            //// TODO: 1/27/2016 add exception 
         }
+
         ConnectionManager connectionManager = ConnectionManager.getManager();
         connectionManager.updateLocalPeer();
         //update connected peer
@@ -75,20 +72,24 @@ public class HandshakeManager {
         connectionManager.getConnectedDevice().setUserContext(msg.getSender().getUserContext());
         connectionManager.getConnectedDevice().setLastSync(lastSync);
         //send handshake response
-        sendHandshakeResponse();
+        try {
+            sendHandshakeResponse();
+        } catch (Exception e) {
+            sendHandshakeFailMessage("failed to generate or send handshake response");
+        }
         return true;
     }
 
 
     //handle an incoming handshake response message
 
-    public static boolean  handleHandshakeResponse(Message msg) throws JSONException {
-        JSONObject msgBody=new JSONObject(msg.getMsgBody());
+    public static boolean handleHandshakeResponse(Message msg) throws JSONException {
+        JSONObject msgBody = new JSONObject(msg.getMsgBody());
         //read and decrypt token
-        String token=msgBody.getString("token");
-        long lastSync=msgBody.getLong("lastSync");
+        String token = msgBody.getString("token");
+        long lastSync = msgBody.getLong("lastSync");
         try {
-            if(!Security.getInstance().authenticate(msg.getSender().getUserContext(),token)) {
+            if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
                 SyncManager.sendSynEndMsg(new SyncResponse(SyncResponseType.FAIL, "authentication faild"));
                 return false;
             }
@@ -103,5 +104,11 @@ public class HandshakeManager {
         connectionManager.getConnectedDevice().setUserContext(msg.getSender().getUserContext());
         connectionManager.getConnectedDevice().setLastSync(lastSync);
         return true;
+    }
+
+    public static void sendHandshakeFailMessage(String msg) {
+        Gson gson = new Gson();
+        Message syncEndMsg = MessageCreator.createSyncEndMsg(new SyncResponse(SyncResponseType.FAIL, msg));
+        ConnectionManager.getManager().sendFile(gson.toJson(syncEndMsg));
     }
 }

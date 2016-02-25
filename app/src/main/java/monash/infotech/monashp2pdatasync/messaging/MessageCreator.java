@@ -49,27 +49,23 @@ public class MessageCreator {
 
     //generate handshake message; MessageType could be handshake and handshakeResponse
     public static Message createHandshakeMessage(MessageType msgType) throws JSONException, SQLException {
-        //get sender and reciver from connection manager
+        //get sender and receiver from connection manager
         ConnectionManager manager = ConnectionManager.getManager();
         Peer sender = manager.getLocalDevice();
-        Peer reciver = manager.getConnectedDevice();
+        Peer receiver = manager.getConnectedDevice();
         Message msg = null;
         //get the message id
-        try {
-            msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
         //set the sender
         msg.setSender(sender);
-        //set the reciver
-        msg.setReciver(reciver);
+        //set the receiver
+        msg.setReciver(receiver);
         //set msg type
         msg.setType(msgType);
         //set msg body which is token for authentication
         JSONObject msgBody=new JSONObject();
         msgBody.put("token", token);
-        SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(reciver.getMacAddress());
+        SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(receiver.getMacAddress());
         long lastSync = syncHistory == null ? 0 : syncHistory.getSynTime();
         msgBody.put("lastSync",lastSync);
         msg.setMsgBody(msgBody.toString());

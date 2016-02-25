@@ -15,6 +15,7 @@ import android.widget.Toast;
 import org.json.JSONException;
 
 import java.net.InetAddress;
+import java.security.spec.ECField;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,10 @@ import java.util.List;
 import monash.infotech.monashp2pdatasync.app.HomeActivity;
 import monash.infotech.monashp2pdatasync.entities.Peer;
 import monash.infotech.monashp2pdatasync.handshake.HandshakeManager;
+import monash.infotech.monashp2pdatasync.messaging.Message;
+import monash.infotech.monashp2pdatasync.messaging.MessageCreator;
+import monash.infotech.monashp2pdatasync.sync.entities.SyncResponse;
+import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
 
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi p2p events.
@@ -133,9 +138,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                     ConnectionManager.getManager().setConnectedPeerIpAddress(groupOwnerAddress.getHostAddress(), null);
                     try {
                         HandshakeManager.sendHandshake();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
+                        HandshakeManager.sendHandshakeFailMessage("failed to generate and send handshake msg");
                         e.printStackTrace();
                     }
                 }
