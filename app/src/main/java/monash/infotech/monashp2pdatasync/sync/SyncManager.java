@@ -87,7 +87,7 @@ public class SyncManager {
         if(handleSyncResults==null || handleSyncResults.isEmpty())
         {
             JSONArray jsonToSend=MessageCreator.SyncRespondMsg(handleSyncResults);
-            syncResponse.setMsg(jsonMsg.toString());
+            syncResponse.setMsg(jsonToSend.toString());
             sendSynEndMsg(syncResponse);
         }
     }
