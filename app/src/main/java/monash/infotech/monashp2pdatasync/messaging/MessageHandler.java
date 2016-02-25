@@ -33,6 +33,8 @@ public class MessageHandler {
                     SyncManager.handelSynEndMsg(message);
                 } catch (SQLException e) {
                     e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
                 }
                 break;
             case syncRequest:

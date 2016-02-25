@@ -13,7 +13,7 @@ import monash.infotech.monashp2pdatasync.entities.UserRole;
  */
 public class RestClient {
 
-    private static final String HOST_ADDRESS="http://49.127.105.4:8080/P2PServer/webresources/";
+    private static final String HOST_ADDRESS="http://10.1.1.188:8080/P2PServer/webresources/";
 
     public static String  register(String username,String password, String role)
     {

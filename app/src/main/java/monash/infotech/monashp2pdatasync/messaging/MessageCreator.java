@@ -247,7 +247,7 @@ public class MessageCreator {
         msg.setType(MessageType.syncRespond);
         JSONObject syncRespondJson=new JSONObject();
         syncRespondJson.put("respond",syncResult);
-        syncRespondJson.put("request",syncResult);
+        syncRespondJson.put("request",json);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
