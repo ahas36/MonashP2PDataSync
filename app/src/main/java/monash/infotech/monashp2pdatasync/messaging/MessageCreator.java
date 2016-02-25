@@ -1,5 +1,7 @@
 package monash.infotech.monashp2pdatasync.messaging;
 
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.GenericRawResults;
@@ -11,16 +13,21 @@ import org.json.JSONObject;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import monash.infotech.monashp2pdatasync.connectivity.p2p.ConnectionManager;
 import monash.infotech.monashp2pdatasync.data.db.DatabaseManager;
 import monash.infotech.monashp2pdatasync.entities.ConflictMethodType;
+import monash.infotech.monashp2pdatasync.entities.HandleSyncResult;
 import monash.infotech.monashp2pdatasync.entities.KeyVal;
 import monash.infotech.monashp2pdatasync.entities.Peer;
 import monash.infotech.monashp2pdatasync.entities.SyncHistory;
 import monash.infotech.monashp2pdatasync.entities.form.Form;
+import monash.infotech.monashp2pdatasync.entities.form.FormItem;
 import monash.infotech.monashp2pdatasync.entities.form.FormType;
+import monash.infotech.monashp2pdatasync.entities.form.HandleSyncResultType;
 import monash.infotech.monashp2pdatasync.entities.form.Log;
 import monash.infotech.monashp2pdatasync.entities.form.LogItems;
 import monash.infotech.monashp2pdatasync.entities.form.LogType;
@@ -61,7 +68,7 @@ public class MessageCreator {
         msg.setType(msgType);
         //set msg body which is token for authentication
         JSONObject msgBody=new JSONObject();
-        msgBody.put("token",token);
+        msgBody.put("token", token);
         SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(reciver.getMacAddress());
         long lastSync = syncHistory == null ? 0 : syncHistory.getSynTime();
         msgBody.put("lastSync",lastSync);
@@ -89,9 +96,47 @@ public class MessageCreator {
         msg.setMsgBody(gson.toJson(response));
         return msg;
     }
+    //create a json msg that contains information regarding the sync request items that modified during the sync processes
+    public static JSONArray SyncRespondMsg(List<HandleSyncResult> handleSyncResults) throws JSONException {
+        JSONArray syncResult= new JSONArray();
+        Map<String,List<HandleSyncResult>> resultMap=new HashMap<>();
+        for (HandleSyncResult h:handleSyncResults)
+        {
+            if(resultMap.containsKey(h.getSenderFormID()))
+            {
+                List<HandleSyncResult> tempHandleSyncResult = resultMap.get(h.getSenderFormID());
+                tempHandleSyncResult.add(h);
+                resultMap.put(h.getSenderFormID(),tempHandleSyncResult);
+            }
+            else
+            {
+                List<HandleSyncResult> tempL=new ArrayList<>();
+                tempL.add(h);
+                resultMap.put(h.getSenderFormID(),tempL);
+            }
 
+        }
+        for (Map.Entry<String,List<HandleSyncResult>> entry : resultMap.entrySet()) {
+
+            JSONObject formJson = new JSONObject();
+            formJson.put("form_id", entry.getKey());
+            JSONArray items=new JSONArray();
+            for (HandleSyncResult hsr:entry.getValue()) {
+                JSONObject syncResultLog=new JSONObject();
+                if(!hsr.getType().equals(HandleSyncResultType.LOST))
+                {
+                    syncResultLog.put("item_id", hsr.getItemId());
+                    syncResultLog.put("value", hsr.getValue());
+                    items.put(syncResultLog);
+                }
+            }
+            formJson.put("items",items);
+            syncResult.put(formJson);
+        }
+        return syncResult;
+    }
     //generate sync request message
-    public static Message createSyncResponse() throws SQLException, JSONException {
+    public static Message createSyncResponse(List<HandleSyncResult> handleSyncResults) throws SQLException, JSONException {
         Message msg = null;
         try {
             msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
@@ -111,18 +156,20 @@ public class MessageCreator {
         long lastSync = reciver.getLastSync();
 
         //create a query that returns all the log items that created after the last sync
+        //////////////////////////0///////////1///////////2/////////3///////////4/////////////////////5//////////////6///////////7///////////
         String query = "select it.inputType,li.item_id,li.value,l.logType,it.conflictResolveMethod,l.logtimestamp,li.log_id,l.form_id from  logitems li  join log l on li.log_id= l.logid join\n" +
                 "(select l2.form_id,li2.item_id,max(l2.logtimestamp) as max from logitems li2  join log l2 on li2.log_id= l2.logid group by li2.item_id,l2.form_id) q on q.item_id=li.item_id and q.max=l.logtimestamp" +
                 " join items it on it.itemId=li.item_id where  it.accessLvl<= " + reciver.getUserContext().getRole().ordinal() + " and  l.logtimestamp>" + lastSync;
         GenericRawResults<String[]> values = logItemDao.queryRaw(query);
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
-
+        JSONArray syncResult= SyncRespondMsg(handleSyncResults);
         for (String[] value : values.getResults()) {
 
-            if(value[3].equals(LogType.SYNC_REQUEST.name()) && !value[4].equals(ConflictMethodType.REPLACE) )
-            {
-                continue;
+            Stream<HandleSyncResult> filter = Stream.of(handleSyncResults).filter(hsr -> hsr.getLocalFormID().equals(value[7]) && hsr.getItemId()== Integer.valueOf(value[1]));
+            Optional<HandleSyncResult> formItemOptional = filter.findFirst();
+            if (formItemOptional.isPresent()) {
+                    continue;
             }
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
@@ -198,13 +245,10 @@ public class MessageCreator {
         msg.setSender(sender);
         msg.setReciver(reciver);
         msg.setType(MessageType.syncRespond);
-        msg.setMsgBody(json.toString());
-        Log syncRequestLog = DatabaseManager.getLogDao().queryBuilder().where().eq("logType", LogType.SYNC_REQUEST).queryForFirst();
-        if(syncRequestLog!=null)
-        {
-            syncRequestLog.setLogType(LogType.SYNC);
-            DatabaseManager.getLogDao().update(syncRequestLog);
-        }
+        JSONObject syncRespondJson=new JSONObject();
+        syncRespondJson.put("respond",syncResult);
+        syncRespondJson.put("request",syncResult);
+        msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
 

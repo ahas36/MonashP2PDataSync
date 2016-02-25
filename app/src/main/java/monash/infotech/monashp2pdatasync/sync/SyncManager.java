@@ -12,16 +12,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import monash.infotech.monashp2pdatasync.connectivity.p2p.ConnectionManager;
 import monash.infotech.monashp2pdatasync.data.db.DatabaseManager;
 import monash.infotech.monashp2pdatasync.data.log.Logger;
+import monash.infotech.monashp2pdatasync.entities.HandleSyncResult;
+import monash.infotech.monashp2pdatasync.entities.Peer;
 import monash.infotech.monashp2pdatasync.entities.SyncHistory;
 import monash.infotech.monashp2pdatasync.entities.form.ConflictItem;
 import monash.infotech.monashp2pdatasync.entities.form.Form;
 import monash.infotech.monashp2pdatasync.entities.form.FormItem;
 import monash.infotech.monashp2pdatasync.entities.form.FormType;
+import monash.infotech.monashp2pdatasync.entities.form.HandleSyncResultType;
 import monash.infotech.monashp2pdatasync.entities.form.Item;
 import monash.infotech.monashp2pdatasync.entities.form.LogType;
 import monash.infotech.monashp2pdatasync.messaging.Message;
@@ -37,9 +42,9 @@ import monash.infotech.monashp2pdatasync.utils.Compress;
  */
 public class SyncManager {
 
-    public static void sendSyncRespond() {
+    public static void sendSyncRespond(List<HandleSyncResult> handleSyncResults) {
         try {
-            Message msg = MessageCreator.createSyncResponse();
+            Message msg = MessageCreator.createSyncResponse(handleSyncResults);
             if (msg.getFiles() != null && !msg.getFiles().isEmpty()) {
                 byte[] zip = Compress.zip(msg);
                 ConnectionManager.getManager().sendFile(zip);
@@ -58,27 +63,67 @@ public class SyncManager {
         }
     }
 
-    public static void handelSynEndMsg() throws SQLException {
-
-        DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
+    public static void handelSynEndMsg(Message msg) throws SQLException, JSONException, IllegalAccessException {
+        Gson gson=new Gson();
+        SyncResponse syncResponse = gson.fromJson(msg.getMsgBody(), SyncResponse.class);
+        if(syncResponse.getType().equals(SyncResponseType.SUCCESS)) {
+            if(!syncResponse.getMsg().isEmpty())
+            {
+                JSONArray syncResult=new JSONArray(syncResponse.getMsg());
+                applyResolvedChanges(syncResult,msg.getSender());
+            }
+            DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
+        }
         ConnectionManager.getManager().disconnect();
     }
 
-    public static void handleSyncResponse(Message msg) throws SQLException, JSONException {
+    public static void handleSyncResponse(Message msg) throws SQLException, JSONException, IllegalAccessException {
         JSONObject jsonMsg = new JSONObject(msg.getMsgBody());
-
+        JSONArray requestedItems=jsonMsg.getJSONArray("request");
+        JSONArray respondsItem=jsonMsg.getJSONArray("respond");
+        List<HandleSyncResult> handleSyncResults = handleSync(requestedItems, msg.getSender(), msg.getReciver());
+        applyResolvedChanges(respondsItem, msg.getSender());
+        SyncResponse syncResponse = new SyncResponse(SyncResponseType.SUCCESS, "");
+        if(handleSyncResults==null || handleSyncResults.isEmpty())
+        {
+            JSONArray jsonToSend=MessageCreator.SyncRespondMsg(handleSyncResults);
+            syncResponse.setMsg(jsonMsg.toString());
+            sendSynEndMsg(syncResponse);
+        }
     }
+    private static void applyResolvedChanges(JSONArray respondList,Peer sender) throws JSONException, SQLException, IllegalAccessException {
+        Dao<Form, String> formDao = DatabaseManager.getFormDao();
+        Dao<FormItem,Integer> formItemDao = DatabaseManager.getFormItemDao();
+        Logger logger = new Logger(sender.getDeviceName());
+        for (int i = 0; i < respondList.length(); i++) {
+            JSONObject form = respondList.getJSONObject(i);
+            //find the form with id
+            Form oldForm = formDao.queryForId(form.getString("form_id"));
+            Object[] tempArray = oldForm.getItems().toArray();
+            FormItem[] oldFormItems = Arrays.copyOf(tempArray, tempArray.length, FormItem[].class);
+            JSONArray items=form.getJSONArray("items");
 
-
-    public static void handleSyncRequest(Message msg) throws SQLException, JSONException, IllegalAccessException {
-        Gson gson = new Gson();
+            for(int x=0;x<items.length();x++)
+            {
+                JSONObject item=items.getJSONObject(x);
+                int item_id = item.getInt("item_id");
+                Stream<FormItem> formItemOptional = Stream.of(oldForm.getItems()).filter(v -> v.getItem().getItemId() == item_id);
+                Optional<FormItem> first = formItemOptional.findFirst();
+                FormItem formItem = first.get();
+                formItem.setValue(item.getString("value"));
+                formItemDao.update(formItem);
+            }
+            logger.log(oldForm.getFormId(),oldFormItems,LogType.SYNC);
+        }
+    }
+    public static List<HandleSyncResult> handleSync(JSONArray json,Peer sender,Peer reciver) throws SQLException, JSONException, IllegalAccessException {
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<Item, Integer> itemDao = DatabaseManager.getItemDao();
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
-        JSONArray json = new JSONArray(msg.getMsgBody());
         ConflictResolution cr = new RecentWinConflictResolution();
-        Logger logger = new Logger(msg.getSender().getDeviceName());
+        Logger logger = new Logger(sender.getDeviceName());
         FormItem[] oldFormItems = null;
+        List<HandleSyncResult> syncResult = new ArrayList<>();
         for (int i = 0; i < json.length(); i++) {
             JSONObject form = json.getJSONObject(i);
             //find the form with id
@@ -105,18 +150,19 @@ public class SyncManager {
                 newForm.setFormId(form.getString("form_id"));
                 newForm.setFormType(formType);
                 formDao.create(newForm);
-
                 oldFormItems = new FormItem[]{};
                 for (int j = 0; j < form.getJSONArray("logs").length(); j++) {
                     JSONObject logs = form.getJSONArray("logs").getJSONObject(j);
                     for (int z = 0; z < logs.getJSONArray("log_items").length(); z++) {
                         JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
                         FormItem formItem = new FormItem(itemDao.queryForId(logItem.getInt("item_id")), newForm, logItem.getString("value"));
+                        //sender win so the sync result is lost (receiver)
+                        syncResult.add(new HandleSyncResult(HandleSyncResultType.LOST, formItem.getForm().getFormId(), formItem.getItem().getItemId(), formItem.getValue(),formItem.getForm().getFormId()));
                         formItemDao.create(formItem);
                     }
 
                 }
-                logger.log(newForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
+                logger.log(newForm.getFormId(), oldFormItems, LogType.SYNC);
 
             } else {
                 //if form exist, find the form items
@@ -141,6 +187,7 @@ public class SyncManager {
                         Optional<FormItem> first = formItemOptional.findFirst();
                         FormItem formItem = null;
                         String value = "";
+                        HandleSyncResultType resultType = null;
                         //if item exist
                         if (first.isPresent()) {
                             formItem = first.get();
@@ -154,30 +201,47 @@ public class SyncManager {
                             //find the item type
                             Item item = DatabaseManager.getItemDao().queryForId(formItem.getItem().getItemId());
                             //call the conflict resolver to resolve the conflict if its needed and compute the new value
-                            value = cr.resolve(new ConflictItem(logItem.getString("value"), logs.getLong("logtimestamp"), item, msg.getSender().getUserContext()), new ConflictItem(formItem.getValue(), Long.valueOf(logTime), item, msg.getReciver().getUserContext()));
-
+                            value = cr.resolve(new ConflictItem(logItem.getString("value"), logs.getLong("logtimestamp"), item, sender.getUserContext()), new ConflictItem(formItem.getValue(), Long.valueOf(logTime), item, reciver.getUserContext()));
+                            if (value.equals(logItem.getString("value"))) {
+                                resultType = HandleSyncResultType.LOST;
+                            } else {
+                                if (value.equals(formItem.getValue())) {
+                                    resultType = HandleSyncResultType.WIN;
+                                } else {
+                                    resultType = HandleSyncResultType.MODIFIED;
+                                }
+                            }
                         } else {//if item not exist, create new item
                             formItem = new FormItem();
                             formItem.setItem(itemDao.queryForId(id));
                             formItem.setForm(oldForm);
                             value = logItem.getString("value");
+                            resultType = HandleSyncResultType.LOST;
                         }
                         //insert or update the form item
                         formItem.setValue(value);
+                        syncResult.add(new HandleSyncResult(resultType, form.getString("form_id"), formItem.getItem().getItemId(), formItem.getValue(),formItem.getForm().getFormId()));
                         formItemDao.createOrUpdate(formItem);
                     }
 
                 }
                 try {
-                    logger.log(oldForm.getFormId(), oldFormItems, LogType.SYNC_REQUEST);
+                    logger.log(oldForm.getFormId(), oldFormItems, LogType.SYNC);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
 
             }
         }
-
+        return syncResult;
     }
+
+
+    public static void handelSyncRequest(Message msg) throws IllegalAccessException, SQLException, JSONException {
+        List<HandleSyncResult> handleSyncResults = handleSync(new JSONArray(msg.getMsgBody()),msg.getSender(),msg.getReciver());
+        sendSyncRespond(handleSyncResults);
+    }
+
 
     //start the data sync
     public static void startDataSync() {

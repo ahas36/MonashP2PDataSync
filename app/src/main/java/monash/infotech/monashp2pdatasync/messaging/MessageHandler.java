@@ -30,28 +30,30 @@ public class MessageHandler {
                 break;
             case syncEnd:
                 try {
-                    SyncManager.handelSynEndMsg();
+                    SyncManager.handelSynEndMsg(message);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
                 break;
             case syncRequest:
                 try {
-                    SyncManager.handleSyncRequest(message);
-                    SyncManager.sendSyncRespond();
+                    SyncManager.handelSyncRequest(message);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 break;
             case syncRespond:
                 try {
-                    SyncManager.handleSyncRequest(message);
-                    SyncManager.sendSynEndMsg(new SyncResponse(SyncResponseType.SUCCESS,""));
+                    SyncManager.handleSyncResponse(message);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 break;
