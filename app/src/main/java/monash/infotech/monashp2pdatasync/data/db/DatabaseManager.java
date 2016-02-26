@@ -129,12 +129,12 @@ public class DatabaseManager {
     public static void deleteAll()
     {
         try {
-            logItemDao = helper.getLogItemDao();
-            formItemDao = helper.getFormItemDao();
-            logDao = helper.getLogDao();
+            logItemDao.deleteBuilder().delete();
+            formItemDao.deleteBuilder().delete();
+            logDao.deleteBuilder().delete();
             formDao.deleteBuilder().delete();
-            msgDao = helper.getMsgDao();
-            syncHistoryDao = helper.getSyncHistoryDao();
+            msgDao.deleteBuilder().delete();
+            syncHistoryDao.deleteBuilder().delete();
         } catch (SQLException e) {
             e.printStackTrace();
         }
