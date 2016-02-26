@@ -35,13 +35,14 @@ import monash.infotech.monashp2pdatasync.entities.form.Log;
 
 public class FormListActivity extends Fragment {
 
-    public FormListActivity(){}
+    public FormListActivity() {
+    }
 
     private DatabaseHelper databaseHelper = null;
 
     @Override
-    public View  onCreateView(LayoutInflater inflater, ViewGroup container,
-                                Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         try {
             File sd = Environment.getExternalStorageDirectory();
             File data = Environment.getDataDirectory();
@@ -64,13 +65,21 @@ public class FormListActivity extends Fragment {
 
         }
         View rootView = inflater.inflate(R.layout.activity_form_list, container, false);
-        final Context context=getActivity().getApplicationContext();
+        final Context context = getActivity().getApplicationContext();
         try {
             ListView lv = (ListView) rootView.findViewById(R.id.formsList);
             final Dao<Form, String> formDao = getHelper().getFormDao();
             List<Form> forms = formDao.queryForAll();
 
             final FormArrayAdapter faa = new FormArrayAdapter(getActivity(), forms);
+
+            ((Button) rootView.findViewById(R.id.btnDeleteAll)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatabaseManager.deleteAll();
+                    faa.notifyDataSetChanged();
+                }
+            });
 
             lv.setAdapter(faa);
             ((Button) rootView.findViewById(R.id.btnAddForm)).setOnClickListener(new View.OnClickListener() {
@@ -80,22 +89,21 @@ public class FormListActivity extends Fragment {
                     //based on item add info to intent
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("Please select the type of the form you want to add");
-                    List<FormType> formTypes=null;
+                    List<FormType> formTypes = null;
 
                     try {
                         formTypes = DatabaseManager.getFormTypeDao().queryForAll();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
-                    final int typeListLength=formTypes.size();
-                    CharSequence[] typeTitles=new CharSequence[typeListLength];
-                    Integer[] typeIds=new Integer[typeListLength];
+                    final int typeListLength = formTypes.size();
+                    CharSequence[] typeTitles = new CharSequence[typeListLength];
+                    Integer[] typeIds = new Integer[typeListLength];
 
-                    int counter=0;
-                    for(FormType ft:formTypes)
-                    {
-                        typeTitles[counter]=ft.getFormTypeTitle();
-                        typeIds[counter++]=ft.getFormTypeId();
+                    int counter = 0;
+                    for (FormType ft : formTypes) {
+                        typeTitles[counter] = ft.getFormTypeTitle();
+                        typeIds[counter++] = ft.getFormTypeId();
                     }
 
                     builder.setItems(typeTitles,
@@ -110,20 +118,27 @@ public class FormListActivity extends Fragment {
                     builder.create().show();
                 }
             });
-        } catch (SQLException e) {
+        } catch (
+                SQLException e
+                )
+
+        {
             android.util.Log.d("Ali", e.getMessage());
-        }
-        catch (Exception e)
+        } catch (
+                Exception e
+                )
+
         {
             android.util.Log.d("Ali", e.getMessage());
         }
+
         return rootView;
 
     }
 
     private DatabaseHelper getHelper() {
         if (databaseHelper == null) {
-            databaseHelper = OpenHelperManager.getHelper( getActivity(), DatabaseHelper.class);
+            databaseHelper = OpenHelperManager.getHelper(getActivity(), DatabaseHelper.class);
         }
         return databaseHelper;
     }

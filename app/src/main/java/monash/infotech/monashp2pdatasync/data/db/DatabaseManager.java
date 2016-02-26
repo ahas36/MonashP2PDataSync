@@ -125,4 +125,19 @@ public class DatabaseManager {
     public static DatabaseHelper getHelper() {
         return helper;
     }
+
+    public static void deleteAll()
+    {
+        try {
+            logItemDao = helper.getLogItemDao();
+            formItemDao = helper.getFormItemDao();
+            logDao = helper.getLogDao();
+            formDao.deleteBuilder().delete();
+            msgDao = helper.getMsgDao();
+            syncHistoryDao = helper.getSyncHistoryDao();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
