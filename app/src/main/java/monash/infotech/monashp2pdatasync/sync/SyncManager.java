@@ -84,12 +84,12 @@ public class SyncManager {
         List<HandleSyncResult> handleSyncResults = handleSync(requestedItems, msg.getSender(), msg.getReciver());
         applyResolvedChanges(respondsItem, msg.getSender());
         SyncResponse syncResponse = new SyncResponse(SyncResponseType.SUCCESS, "");
-        if(handleSyncResults==null || handleSyncResults.isEmpty())
+        if(handleSyncResults!=null && !handleSyncResults.isEmpty())
         {
             JSONArray jsonToSend=MessageCreator.SyncRespondMsg(handleSyncResults);
             syncResponse.setMsg(jsonToSend.toString());
-            sendSynEndMsg(syncResponse);
         }
+        sendSynEndMsg(syncResponse);
     }
     private static void applyResolvedChanges(JSONArray respondList,Peer sender) throws JSONException, SQLException, IllegalAccessException {
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
