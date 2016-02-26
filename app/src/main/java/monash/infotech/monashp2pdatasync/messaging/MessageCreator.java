@@ -271,12 +271,7 @@ public class MessageCreator {
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
         for (String[] value : values.getResults()) {
-            if(lastSync<Long.valueOf(value[3]))
-            {
-                JSONObject formJson = null;
-                formJson = new JSONObject();
-                formJson.put("asd","qwe");
-            }
+
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
             }
