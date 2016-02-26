@@ -64,13 +64,12 @@ public class SyncManager {
     }
 
     public static void handelSynEndMsg(Message msg) throws SQLException, JSONException, IllegalAccessException {
-        Gson gson=new Gson();
+        Gson gson = new Gson();
         SyncResponse syncResponse = gson.fromJson(msg.getMsgBody(), SyncResponse.class);
-        if(syncResponse.getType().equals(SyncResponseType.SUCCESS)) {
-            if(!syncResponse.getMsg().isEmpty())
-            {
-                JSONArray syncResult=new JSONArray(syncResponse.getMsg());
-                applyResolvedChanges(syncResult,msg.getSender());
+        if (syncResponse.getType().equals(SyncResponseType.SUCCESS)) {
+            if (!syncResponse.getMsg().isEmpty()) {
+                JSONArray syncResult = new JSONArray(syncResponse.getMsg());
+                applyResolvedChanges(syncResult, msg.getSender());
             }
             DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
         }
@@ -79,21 +78,21 @@ public class SyncManager {
 
     public static void handleSyncResponse(Message msg) throws SQLException, JSONException, IllegalAccessException {
         JSONObject jsonMsg = new JSONObject(msg.getMsgBody());
-        JSONArray requestedItems=jsonMsg.getJSONArray("request");
-        JSONArray respondsItem=jsonMsg.getJSONArray("respond");
+        JSONArray requestedItems = jsonMsg.getJSONArray("request");
+        JSONArray respondsItem = jsonMsg.getJSONArray("respond");
         List<HandleSyncResult> handleSyncResults = handleSync(requestedItems, msg.getSender(), msg.getReciver());
         applyResolvedChanges(respondsItem, msg.getSender());
         SyncResponse syncResponse = new SyncResponse(SyncResponseType.SUCCESS, "");
-        if(handleSyncResults!=null && !handleSyncResults.isEmpty())
-        {
-            JSONArray jsonToSend=MessageCreator.SyncRespondMsg(handleSyncResults);
+        if (handleSyncResults != null && !handleSyncResults.isEmpty()) {
+            JSONArray jsonToSend = MessageCreator.SyncRespondMsg(handleSyncResults);
             syncResponse.setMsg(jsonToSend.toString());
         }
         sendSynEndMsg(syncResponse);
     }
-    private static void applyResolvedChanges(JSONArray respondList,Peer sender) throws JSONException, SQLException, IllegalAccessException {
+
+    private static void applyResolvedChanges(JSONArray respondList, Peer sender) throws JSONException, SQLException, IllegalAccessException {
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
-        Dao<FormItem,Integer> formItemDao = DatabaseManager.getFormItemDao();
+        Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
         Logger logger = new Logger(sender.getDeviceName());
         for (int i = 0; i < respondList.length(); i++) {
             JSONObject form = respondList.getJSONObject(i);
@@ -101,11 +100,10 @@ public class SyncManager {
             Form oldForm = formDao.queryForId(form.getString("form_id"));
             Object[] tempArray = oldForm.getItems().toArray();
             FormItem[] oldFormItems = Arrays.copyOf(tempArray, tempArray.length, FormItem[].class);
-            JSONArray items=form.getJSONArray("items");
+            JSONArray items = form.getJSONArray("items");
 
-            for(int x=0;x<items.length();x++)
-            {
-                JSONObject item=items.getJSONObject(x);
+            for (int x = 0; x < items.length(); x++) {
+                JSONObject item = items.getJSONObject(x);
                 int item_id = item.getInt("item_id");
                 Stream<FormItem> formItemOptional = Stream.of(oldForm.getItems()).filter(v -> v.getItem().getItemId() == item_id);
                 Optional<FormItem> first = formItemOptional.findFirst();
@@ -113,10 +111,11 @@ public class SyncManager {
                 formItem.setValue(item.getString("value"));
                 formItemDao.update(formItem);
             }
-            logger.log(oldForm.getFormId(),oldFormItems,LogType.SYNC);
+            logger.log(oldForm.getFormId(), oldFormItems, LogType.SYNC);
         }
     }
-    public static List<HandleSyncResult> handleSync(JSONArray json,Peer sender,Peer reciver) throws SQLException, JSONException, IllegalAccessException {
+
+    public static List<HandleSyncResult> handleSync(JSONArray json, Peer sender, Peer reciver) throws SQLException, JSONException, IllegalAccessException {
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<Item, Integer> itemDao = DatabaseManager.getItemDao();
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
@@ -157,7 +156,7 @@ public class SyncManager {
                         JSONObject logItem = logs.getJSONArray("log_items").getJSONObject(z);
                         FormItem formItem = new FormItem(itemDao.queryForId(logItem.getInt("item_id")), newForm, logItem.getString("value"));
                         //sender win so the sync result is lost (receiver)
-                        syncResult.add(new HandleSyncResult(HandleSyncResultType.LOST, formItem.getForm().getFormId(), formItem.getItem().getItemId(), formItem.getValue(),formItem.getForm().getFormId()));
+                        syncResult.add(new HandleSyncResult(HandleSyncResultType.LOST, formItem.getForm().getFormId(), formItem.getItem().getItemId(), formItem.getValue(), formItem.getForm().getFormId()));
                         formItemDao.create(formItem);
                     }
 
@@ -220,7 +219,7 @@ public class SyncManager {
                         }
                         //insert or update the form item
                         formItem.setValue(value);
-                        syncResult.add(new HandleSyncResult(resultType, form.getString("form_id"), formItem.getItem().getItemId(), formItem.getValue(),formItem.getForm().getFormId()));
+                        syncResult.add(new HandleSyncResult(resultType, form.getString("form_id"), formItem.getItem().getItemId(), formItem.getValue(), formItem.getForm().getFormId()));
                         formItemDao.createOrUpdate(formItem);
                     }
 
@@ -273,10 +272,18 @@ public class SyncManager {
         Message msg = MessageCreator.createSyncEndMsg(response);
         //send
         connectionManager.sendFile(msg.toJson());
+        if (response.getType().equals(SyncResponseType.SUCCESS)) {
+            try {
+                DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
     public static void sendSynFailMsg(String msg) {
         ConnectionManager connectionManager = ConnectionManager.getManager();
-        SyncResponse response=new SyncResponse(SyncResponseType.FAIL,msg);
+        SyncResponse response = new SyncResponse(SyncResponseType.FAIL, msg);
         //generate sync end msg
         Message message = MessageCreator.createSyncEndMsg(response);
         //send
