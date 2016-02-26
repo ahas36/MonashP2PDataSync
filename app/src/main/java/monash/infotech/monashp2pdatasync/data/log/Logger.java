@@ -45,7 +45,7 @@ public class Logger {
         switch (lt) {
             case CREATE:
             case UPDATE:
-            case SYNC_REQUEST:
+            case SYNC:
                 //loop over all the new items
                 for (FormItem newItem : newObj.getItems()) {
                     //if the old object exist
