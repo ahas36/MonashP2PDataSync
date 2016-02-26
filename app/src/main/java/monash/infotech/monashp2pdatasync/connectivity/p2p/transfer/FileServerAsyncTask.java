@@ -66,12 +66,8 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, Void> {
                     break;
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             return null;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
         } finally {
             if (serverSocket != null){
                 try {
