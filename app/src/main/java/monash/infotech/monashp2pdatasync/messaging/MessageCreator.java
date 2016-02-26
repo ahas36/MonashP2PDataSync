@@ -63,18 +63,18 @@ public class MessageCreator {
         //set msg type
         msg.setType(msgType);
         //set msg body which is token for authentication
-        JSONObject msgBody=new JSONObject();
+        JSONObject msgBody = new JSONObject();
         msgBody.put("token", token);
         SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(receiver.getMacAddress());
         long lastSync = syncHistory == null ? 0 : syncHistory.getSynTime();
-        msgBody.put("lastSync",lastSync);
+        msgBody.put("lastSync", lastSync);
         msg.setMsgBody(msgBody.toString());
         return msg;
     }
 
     //generate end sync message
     public static Message createSyncEndMsg(SyncResponse response) {
-        //get sender and reciver from connection manager
+        //get sender and receiver from connection manager
         ConnectionManager manager = ConnectionManager.getManager();
         Peer sender = manager.getLocalDevice();
         Peer reciver = manager.getConnectedDevice();
@@ -92,45 +92,42 @@ public class MessageCreator {
         msg.setMsgBody(gson.toJson(response));
         return msg;
     }
+
     //create a json msg that contains information regarding the sync request items that modified during the sync processes
     public static JSONArray SyncRespondMsg(List<HandleSyncResult> handleSyncResults) throws JSONException {
-        JSONArray syncResult= new JSONArray();
-        Map<String,List<HandleSyncResult>> resultMap=new HashMap<>();
-        for (HandleSyncResult h:handleSyncResults)
-        {
-            if(resultMap.containsKey(h.getSenderFormID()))
-            {
+        JSONArray syncResult = new JSONArray();
+        Map<String, List<HandleSyncResult>> resultMap = new HashMap<>();
+        for (HandleSyncResult h : handleSyncResults) {
+            if (resultMap.containsKey(h.getSenderFormID())) {
                 List<HandleSyncResult> tempHandleSyncResult = resultMap.get(h.getSenderFormID());
                 tempHandleSyncResult.add(h);
-                resultMap.put(h.getSenderFormID(),tempHandleSyncResult);
-            }
-            else
-            {
-                List<HandleSyncResult> tempL=new ArrayList<>();
+                resultMap.put(h.getSenderFormID(), tempHandleSyncResult);
+            } else {
+                List<HandleSyncResult> tempL = new ArrayList<>();
                 tempL.add(h);
-                resultMap.put(h.getSenderFormID(),tempL);
+                resultMap.put(h.getSenderFormID(), tempL);
             }
 
         }
-        for (Map.Entry<String,List<HandleSyncResult>> entry : resultMap.entrySet()) {
+        for (Map.Entry<String, List<HandleSyncResult>> entry : resultMap.entrySet()) {
 
             JSONObject formJson = new JSONObject();
             formJson.put("form_id", entry.getKey());
-            JSONArray items=new JSONArray();
-            for (HandleSyncResult hsr:entry.getValue()) {
-                JSONObject syncResultLog=new JSONObject();
-                if(!hsr.getType().equals(HandleSyncResultType.LOST))
-                {
+            JSONArray items = new JSONArray();
+            for (HandleSyncResult hsr : entry.getValue()) {
+                JSONObject syncResultLog = new JSONObject();
+                if (!hsr.getType().equals(HandleSyncResultType.LOST)) {
                     syncResultLog.put("item_id", hsr.getItemId());
                     syncResultLog.put("value", hsr.getValue());
                     items.put(syncResultLog);
                 }
             }
-            formJson.put("items",items);
+            formJson.put("items", items);
             syncResult.put(formJson);
         }
         return syncResult;
     }
+
     //generate sync request message
     public static Message createSyncResponse(List<HandleSyncResult> handleSyncResults) throws SQLException, JSONException {
         Message msg = null;
@@ -142,7 +139,7 @@ public class MessageCreator {
         //get the DAOs
         Dao<LogItems, Integer> logItemDao = DatabaseManager.getLogItemDao();
 
-        //get sender and reciver from connection manager
+        //get sender and reciever from connection manager
         ConnectionManager manager = ConnectionManager.getManager();
         Peer sender = manager.getLocalDevice();
         Peer reciver = manager.getConnectedDevice();
@@ -159,13 +156,13 @@ public class MessageCreator {
         GenericRawResults<String[]> values = logItemDao.queryRaw(query);
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
-        JSONArray syncResult= SyncRespondMsg(handleSyncResults);
+        JSONArray syncResult = SyncRespondMsg(handleSyncResults);
         for (String[] value : values.getResults()) {
 
-            Stream<HandleSyncResult> filter = Stream.of(handleSyncResults).filter(hsr -> hsr.getLocalFormID().equals(value[7]) && hsr.getItemId()== Integer.valueOf(value[1]));
+            Stream<HandleSyncResult> filter = Stream.of(handleSyncResults).filter(hsr -> hsr.getLocalFormID().equals(value[7]) && hsr.getItemId() == Integer.valueOf(value[1]));
             Optional<HandleSyncResult> formItemOptional = filter.findFirst();
             if (formItemOptional.isPresent()) {
-                    continue;
+                continue;
             }
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
@@ -241,9 +238,25 @@ public class MessageCreator {
         msg.setSender(sender);
         msg.setReciver(reciver);
         msg.setType(MessageType.syncRespond);
-        JSONObject syncRespondJson=new JSONObject();
-        syncRespondJson.put("respond",syncResult);
-        syncRespondJson.put("request",json);
+        JSONObject syncRespondJson = new JSONObject();
+        syncRespondJson.put("respond", syncResult);
+        syncRespondJson.put("request", json);
+        msg.setMsgBody(syncRespondJson.toString());
+        return msg;
+    }
+
+    public static Message createSyncResponseChangesMsg(List<HandleSyncResult> handleSyncResults) throws JSONException, SQLException {
+        Message msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
+        JSONArray syncResult = SyncRespondMsg(handleSyncResults);
+        //get sender and receiver from connection manager
+        ConnectionManager manager = ConnectionManager.getManager();
+        Peer sender = manager.getLocalDevice();
+        Peer receiver = manager.getConnectedDevice();
+        msg.setSender(sender);
+        msg.setReciver(receiver);
+        msg.setType(MessageType.syncRespond);
+        JSONObject syncRespondJson = new JSONObject();
+        syncRespondJson.put("respond", syncResult);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
@@ -271,11 +284,10 @@ public class MessageCreator {
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
         for (String[] value : values.getResults()) {
-            if(lastSync<Long.valueOf(value[3]))
-            {
+            if (lastSync < Long.valueOf(value[3])) {
                 JSONObject formJson = null;
                 formJson = new JSONObject();
-                formJson.put("asd","qwe");
+                formJson.put("asd", "qwe");
             }
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
@@ -308,7 +320,7 @@ public class MessageCreator {
                         String fieldName = semanticKeyJsonArray.getString(semanticCounter);
                         String semanticValueRawQuery = "select fi.value,fi.item_id from formitem as fi join items on items.ItemId=fi.item_id where items.ItemTitle=\"" + fieldName + "\" and fi.form_id=\"" + formId + "\"";
                         String[] firstResult = DatabaseManager.getFormItemDao().queryRaw(semanticValueRawQuery).getFirstResult();
-                        if(firstResult==null)
+                        if (firstResult == null)
                             continue;
                         String semanticValue = firstResult[0];
                         String id = firstResult[1];

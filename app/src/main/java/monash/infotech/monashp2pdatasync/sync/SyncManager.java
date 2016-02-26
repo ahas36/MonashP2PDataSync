@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,19 +79,25 @@ public class SyncManager {
 
     public static void handleSyncResponse(Message msg) throws SQLException, JSONException, IllegalAccessException {
         JSONObject jsonMsg = new JSONObject(msg.getMsgBody());
-        JSONArray requestedItems = jsonMsg.getJSONArray("request");
-        JSONArray respondsItem = jsonMsg.getJSONArray("respond");
+        JSONArray requestedItems = jsonMsg.has("request")?jsonMsg.getJSONArray("request"):null;
+        JSONArray respondsItem = jsonMsg.has("respond")?jsonMsg.getJSONArray("respond"):null;
         List<HandleSyncResult> handleSyncResults = handleSync(requestedItems, msg.getSender(), msg.getReciver());
         applyResolvedChanges(respondsItem, msg.getSender());
         SyncResponse syncResponse = new SyncResponse(SyncResponseType.SUCCESS, "");
         if (handleSyncResults != null && !handleSyncResults.isEmpty()) {
-            JSONArray jsonToSend = MessageCreator.SyncRespondMsg(handleSyncResults);
-            syncResponse.setMsg(jsonToSend.toString());
+            sendSyncResponseChangesMsg(handleSyncResults);
         }
-        sendSynEndMsg(syncResponse);
+        else {
+            sendSynEndMsg(syncResponse);
+        }
     }
-
+    public static void sendSyncResponseChangesMsg(List<HandleSyncResult> handleSyncResults) throws JSONException, SQLException {
+        Message syncResponseChangesMsg = MessageCreator.createSyncResponseChangesMsg(handleSyncResults);
+        ConnectionManager.getManager().sendFile(new Gson().toJson(syncResponseChangesMsg));
+    }
     private static void applyResolvedChanges(JSONArray respondList, Peer sender) throws JSONException, SQLException, IllegalAccessException {
+        if(respondList==null)
+            return;
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
         Logger logger = new Logger(sender.getDeviceName());
@@ -116,6 +123,8 @@ public class SyncManager {
     }
 
     public static List<HandleSyncResult> handleSync(JSONArray json, Peer sender, Peer reciver) throws SQLException, JSONException, IllegalAccessException {
+        if(json==null)
+            return null;
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<Item, Integer> itemDao = DatabaseManager.getItemDao();
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
