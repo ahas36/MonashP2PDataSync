@@ -23,7 +23,7 @@ public class MessageHandler {
                 try {
                     HandshakeManager.handleHandshake(message);
                 } catch (Exception e) {
-                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake");
+                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake"+e.getMessage()!=null?" msg = "+e.getMessage():"");
                 }
                 break;
             case handshakeResponse:
@@ -32,14 +32,14 @@ public class MessageHandler {
                 }
                 catch (Exception e)
                 {
-                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake response");
+                    HandshakeManager.sendHandshakeFailMessage("failed to handle handshake response"+e.getMessage()!=null?" msg = "+e.getMessage():"");
                 }
                 break;
             case syncEnd:
                 try {
                     SyncManager.handelSynEndMsg(message);
                 } catch (Exception e) {
-                    SyncManager.sendSynFailMsg("failed to handel sync end msg");
+                    SyncManager.sendSynFailMsg("failed to handel sync end msg"+e.getMessage()!=null?" msg = "+e.getMessage():"");
                     ConnectionManager.getManager().disconnect();
                     e.printStackTrace();
                 }
@@ -48,15 +48,16 @@ public class MessageHandler {
                 try {
                     SyncManager.handelSyncRequest(message);
                 } catch (Exception e) {
-                    SyncManager.sendSynFailMsg("failed to handle sync request");
+                    SyncManager.sendSynFailMsg("failed to handle sync request"+e.getMessage()!=null?" msg = "+e.getMessage():"");
                     e.printStackTrace();
                 }
                 break;
             case syncRespond:
                 try {
-                    SyncManager.sendSynFailMsg("failed to handle sync response");
+
                     SyncManager.handleSyncResponse(message);
                 } catch (Exception e) {
+                    SyncManager.sendSynFailMsg("failed to handle sync response"+e.getMessage()!=null?" msg = "+e.getMessage():"");
                     e.printStackTrace();
                 }
                 break;
