@@ -32,6 +32,7 @@ import monash.infotech.monashp2pdatasync.entities.form.Log;
 import monash.infotech.monashp2pdatasync.entities.form.LogItems;
 import monash.infotech.monashp2pdatasync.entities.form.LogType;
 import monash.infotech.monashp2pdatasync.sync.entities.SyncResponse;
+import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
 
 /**
  * Created by john on 12/8/2015.
@@ -67,13 +68,14 @@ public class MessageCreator {
         msgBody.put("token", token);
         SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(receiver.getMacAddress());
         long lastSync = syncHistory == null ? 0 : syncHistory.getSynTime();
+        sender.setLastSync(lastSync);
         msgBody.put("lastSync", lastSync);
         msg.setMsgBody(msgBody.toString());
         return msg;
     }
 
     //generate end sync message
-    public static Message createSyncEndMsg(SyncResponse response) {
+    public static Message createSyncEndMsg(SyncResponse response) throws SQLException {
         //get sender and receiver from connection manager
         ConnectionManager manager = ConnectionManager.getManager();
         Peer sender = manager.getLocalDevice();
@@ -84,6 +86,18 @@ public class MessageCreator {
             msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        if(response.getType().equals(SyncResponseType.SUCCESS))
+        {
+            String query="select max(logid) from log";
+            String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(query).getFirstResult();
+            if(lastLogIdList!=null && lastLogIdList.length>0)
+            {
+                response.setLastLogId(Integer.valueOf(lastLogIdList[0]));
+            }
+            else {
+                response.setLastLogId(0);
+            }
         }
         msg.setSender(sender);
         msg.setReciver(reciver);
@@ -152,7 +166,7 @@ public class MessageCreator {
         //////////////////////////0///////////1///////////2/////////3///////////4/////////////////////5//////////////6///////////7///////////
         String query = "select it.inputType,li.item_id,li.value,l.logType,it.conflictResolveMethod,l.logtimestamp,li.log_id,l.form_id from  logitems li  join log l on li.log_id= l.logid join\n" +
                 "(select l2.form_id,li2.item_id,max(l2.logtimestamp) as max from logitems li2  join log l2 on li2.log_id= l2.logid group by li2.item_id,l2.form_id) q on q.item_id=li.item_id and q.max=l.logtimestamp" +
-                " join items it on it.itemId=li.item_id where  it.accessLvl<= " + reciver.getUserContext().getRole().ordinal() + " and  l.logtimestamp>" + lastSync;
+                " join items it on it.itemId=li.item_id where  it.accessLvl<= " + reciver.getUserContext().getRole().ordinal() + " and  l.logid>" + lastSync;
         GenericRawResults<String[]> values = logItemDao.queryRaw(query);
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
@@ -241,6 +255,17 @@ public class MessageCreator {
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
         syncRespondJson.put("request", json);
+
+        String lastLogQuery="select max(logId) from log";
+        String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(lastLogQuery).getFirstResult();
+        if(lastLogIdList!=null && lastLogIdList.length>0)
+        {
+            syncRespondJson.put("lastLogId",lastLogIdList[0]);
+        }
+        else {
+            syncRespondJson.put("lastLogId",0);
+        }
+
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
@@ -257,6 +282,17 @@ public class MessageCreator {
         msg.setType(MessageType.syncRespond);
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
+
+        String lastLogQuery="select max(logId) from log";
+        String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(lastLogQuery).getFirstResult();
+        if(lastLogIdList!=null && lastLogIdList.length>0)
+        {
+            syncRespondJson.put("lastLogId",lastLogIdList[0]);
+        }
+        else {
+            syncRespondJson.put("lastLogId",0);
+        }
+
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
@@ -279,16 +315,11 @@ public class MessageCreator {
         //query log items to retrieve all the new changes for reciver peer
         String query = "select it.inputType,li.item_id,li.value,l.logtimestamp,li.log_id,l.form_id from  logitems li  join log l on li.log_id= l.logid join\n" +
                 "(select l2.form_id,li2.item_id,max(l2.logtimestamp) as max from logitems li2  join log l2 on li2.log_id= l2.logid group by li2.item_id,l2.form_id) q on q.item_id=li.item_id and q.max=l.logtimestamp" +
-                " join items it on it.itemId=li.item_id where it.accessLvl<= " + reciver.getUserContext().getRole().ordinal() + " and  l.logtimestamp>" + lastSync;
+                " join items it on it.itemId=li.item_id where it.accessLvl<= " + reciver.getUserContext().getRole().ordinal() + " and  l.logid>" + lastSync;
         GenericRawResults<String[]> values = logItemDao.queryRaw(query);
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
         for (String[] value : values.getResults()) {
-            if (lastSync < Long.valueOf(value[3])) {
-                JSONObject formJson = null;
-                formJson = new JSONObject();
-                formJson.put("asd", "qwe");
-            }
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
             }

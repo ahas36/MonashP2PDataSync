@@ -6,6 +6,7 @@ import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.GenericRawResults;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,11 +69,15 @@ public class SyncManager {
         Gson gson = new Gson();
         SyncResponse syncResponse = gson.fromJson(msg.getMsgBody(), SyncResponse.class);
         if (syncResponse.getType().equals(SyncResponseType.SUCCESS)) {
-            if (!syncResponse.getMsg().isEmpty()) {
-                JSONArray syncResult = new JSONArray(syncResponse.getMsg());
-                applyResolvedChanges(syncResult, msg.getSender());
+            SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(ConnectionManager.getManager().getConnectedDevice().getMacAddress());
+            if(syncHistory==null) {
+                syncHistory=new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), syncResponse.getLastLogId());
             }
-            DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
+            else
+            {
+                syncHistory.setSynTime(syncResponse.getLastLogId());
+            }
+            DatabaseManager.getSyncHistoryDao().createOrUpdate(syncHistory);
         }
         ConnectionManager.getManager().disconnect();
     }
@@ -88,6 +93,16 @@ public class SyncManager {
             sendSyncResponseChangesMsg(handleSyncResults);
         }
         else {
+            int lastLogId=jsonMsg.getInt("lastLogId");
+            SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(ConnectionManager.getManager().getConnectedDevice().getMacAddress());
+            if(syncHistory==null) {
+                syncHistory=new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), lastLogId);
+            }
+            else
+            {
+                syncHistory.setSynTime(lastLogId);
+            }
+            DatabaseManager.getSyncHistoryDao().createOrUpdate(syncHistory);
             sendSynEndMsg(syncResponse);
         }
     }
@@ -278,23 +293,26 @@ public class SyncManager {
     public static void sendSynEndMsg(SyncResponse response) {
         ConnectionManager connectionManager = ConnectionManager.getManager();
         //generate sync end msg
-        Message msg = MessageCreator.createSyncEndMsg(response);
+        Message msg = null;
+        try {
+            msg = MessageCreator.createSyncEndMsg(response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         //send
         connectionManager.sendFile(msg.toJson());
-        if (response.getType().equals(SyncResponseType.SUCCESS)) {
-            try {
-                DatabaseManager.getSyncHistoryDao().createOrUpdate(new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), System.currentTimeMillis()));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public static void sendSynFailMsg(String msg) {
         ConnectionManager connectionManager = ConnectionManager.getManager();
         SyncResponse response = new SyncResponse(SyncResponseType.FAIL, msg);
         //generate sync end msg
-        Message message = MessageCreator.createSyncEndMsg(response);
+        Message message = null;
+        try {
+            message = MessageCreator.createSyncEndMsg(response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         //send
         connectionManager.sendFile(message.toJson());
     }

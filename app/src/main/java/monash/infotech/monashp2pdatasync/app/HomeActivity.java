@@ -15,11 +15,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import monash.infotech.monashp2pdatasync.R;
 import monash.infotech.monashp2pdatasync.connectivity.p2p.ConnectionManager;
+import monash.infotech.monashp2pdatasync.data.db.DatabaseManager;
 
 public class HomeActivity extends Fragment {
 
@@ -72,9 +74,20 @@ public class HomeActivity extends Fragment {
         ((Button) rootView.findViewById(R.id.getInfo)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String lastLogQuery="select max(logId) from log";
+                String[] lastLogIdList = new String[0];
+                try {
+                    lastLogIdList = DatabaseManager.getLogDao().queryRaw(lastLogQuery).getFirstResult();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                if(lastLogIdList!=null && lastLogIdList.length>0)
+                {
+                    ((TextView)rootView.findViewById(R.id.lastSyncLogId)).setText(lastLogIdList[0]);
+                }
                 if(cm.getLocalDevice()!=null && cm.getConnectedDevice()!=null) {
-                    ((TextView) rootView.findViewById(R.id.local)).setText(cm.getLocalDevice().getIPAddress() + "," + cm.getLocalDevice().getMacAddress() + "," + cm.getLocalDevice().getDeviceName() + "," + cm.getLocalDevice().isConnected());
-                    ((TextView) rootView.findViewById(R.id.connected)).setText(cm.getConnectedDevice().getIPAddress() + "," + cm.getConnectedDevice().getMacAddress() + "," + cm.getConnectedDevice().getDeviceName() + "," + cm.getConnectedDevice().isConnected());
+                    ((TextView) rootView.findViewById(R.id.local)).setText(cm.getLocalDevice().getIPAddress() + "," + cm.getLocalDevice().getMacAddress() + "," + cm.getLocalDevice().getDeviceName() + "," + cm.getLocalDevice().isConnected()+ ", "+cm.getLocalDevice().getLastSync());
+                    ((TextView) rootView.findViewById(R.id.connected)).setText(cm.getConnectedDevice().getIPAddress() + "," + cm.getConnectedDevice().getMacAddress() + "," + cm.getConnectedDevice().getDeviceName() + "," + cm.getConnectedDevice().isConnected()+ ", "+cm.getConnectedDevice().getLastSync());
                     updatePeers();
                 }
             }

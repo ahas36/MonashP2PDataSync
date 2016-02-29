@@ -88,7 +88,7 @@ public class ConnectionManager {
     //start file receiver service
     public void startFileServer() {
 
-        (new FileServerAsyncTask(mActivity, mActivity.findViewById(R.id.textView))).execute();
+        (new FileServerAsyncTask(mActivity, mActivity.findViewById(R.id.lastSyncLogId))).execute();
     }
 
     //start Peer Discovery

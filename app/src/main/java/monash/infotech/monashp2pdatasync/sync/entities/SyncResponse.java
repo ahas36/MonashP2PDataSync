@@ -6,13 +6,21 @@ package monash.infotech.monashp2pdatasync.sync.entities;
 public class SyncResponse {
     private SyncResponseType type;
     private String msg;
-
+    private int lastLogId;
     public SyncResponse(SyncResponseType type, String msg) {
         this.type = type;
         this.msg = msg;
     }
 
     public SyncResponse() {
+    }
+
+    public int getLastLogId() {
+        return lastLogId;
+    }
+
+    public void setLastLogId(int lastLogId) {
+        this.lastLogId = lastLogId;
     }
 
     public SyncResponseType getType() {
