@@ -19,6 +19,7 @@ import java.util.Map;
 
 import monash.infotech.monashp2pdatasync.connectivity.p2p.ConnectionManager;
 import monash.infotech.monashp2pdatasync.data.db.DatabaseManager;
+import monash.infotech.monashp2pdatasync.data.log.Logger;
 import monash.infotech.monashp2pdatasync.entities.ConflictMethodType;
 import monash.infotech.monashp2pdatasync.entities.HandleSyncResult;
 import monash.infotech.monashp2pdatasync.entities.KeyVal;
@@ -87,17 +88,9 @@ public class MessageCreator {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if(response.getType().equals(SyncResponseType.SUCCESS))
-        {
-            String query="select max(logid) from log";
-            String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(query).getFirstResult();
-            if(lastLogIdList!=null && lastLogIdList.length>0)
-            {
-                response.setLastLogId(Integer.valueOf(lastLogIdList[0]));
-            }
-            else {
-                response.setLastLogId(0);
-            }
+        if (response.getType().equals(SyncResponseType.SUCCESS)) {
+            response.setLastLogId(Logger.lastLogId);
+
         }
         msg.setSender(sender);
         msg.setReciver(reciver);
@@ -255,17 +248,7 @@ public class MessageCreator {
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
         syncRespondJson.put("request", json);
-
-        String lastLogQuery="select max(logId) from log";
-        String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(lastLogQuery).getFirstResult();
-        if(lastLogIdList!=null && lastLogIdList.length>0)
-        {
-            syncRespondJson.put("lastLogId",lastLogIdList[0]);
-        }
-        else {
-            syncRespondJson.put("lastLogId",0);
-        }
-
+        syncRespondJson.put("lastLogId", Logger.lastLogId);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
@@ -282,17 +265,7 @@ public class MessageCreator {
         msg.setType(MessageType.syncRespond);
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
-
-        String lastLogQuery="select max(logId) from log";
-        String[] lastLogIdList = DatabaseManager.getLogDao().queryRaw(lastLogQuery).getFirstResult();
-        if(lastLogIdList!=null && lastLogIdList.length>0)
-        {
-            syncRespondJson.put("lastLogId",lastLogIdList[0]);
-        }
-        else {
-            syncRespondJson.put("lastLogId",0);
-        }
-
+        syncRespondJson.put("lastLogId", Logger.lastLogId);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }

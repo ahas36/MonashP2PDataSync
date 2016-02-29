@@ -22,7 +22,7 @@ import monash.infotech.monashp2pdatasync.entities.form.LogType;
 public class Logger {
     //Device Id of the user who made the changes
     private String ownerId;
-
+    public static int lastLogId=0;
     public Logger(String ownerId) {
         this.ownerId = ownerId;
     }
@@ -74,6 +74,7 @@ public class Logger {
                 }
                 break;
         }
+        lastLogId=log.getLogId();
         return log;
     }
 
