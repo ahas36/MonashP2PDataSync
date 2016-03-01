@@ -95,7 +95,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             android.util.Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
         }
     }
-
+    //read the form schema and init the database
     private void initData()
     {
         InputStream is = context.getResources().openRawResource(R.raw.schema);

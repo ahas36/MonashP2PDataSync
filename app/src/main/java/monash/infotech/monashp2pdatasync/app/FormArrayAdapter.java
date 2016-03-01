@@ -43,44 +43,7 @@ public class FormArrayAdapter extends ArrayAdapter<Form> {
         TextView textView = (TextView) rowView.findViewById(R.id.formidtextview);
         final Form form = values.get(position);
         textView.setText(String.valueOf(form.getFormId()));
-        final Button button = (Button) rowView.findViewById(R.id.btnFormDelete);
-        // change the icon for Windows and iPhone
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(context)
-                        .setTitle("Delete entry")
-                        .setMessage("Are you sure you want to delete this entry?")
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                try {
-                                    DatabaseHelper databaseHelper = OpenHelperManager.getHelper(context, DatabaseHelper.class);
-                                    String android_id = Settings.Secure.getString(context.getContentResolver(),
-                                            Settings.Secure.ANDROID_ID);
-                                    Logger logger=new Logger(android_id);
-                                //    Log le=logger.log(form.getFormId(), form.getEventId(), null, form, LogType.DELETE);
-                                    databaseHelper.getFormDao().delete(form);
-                               //     databaseHelper.getLogDao().create(le);
-                                    values.remove(form);
-                                    notifyDataSetChanged();
-                                } catch (SQLException e) {
-                                    android.util.Log.d("Ali", e.getMessage());
-                                }/* catch (JSONException e) {
-                                    android.util.Log.d("Ali", e.getMessage());
-                                } catch (IllegalAccessException e) {
-                                    android.util.Log.d("Ali", e.getMessage());
-                                }*/
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-        });
+
         final Button btnView = (Button) rowView.findViewById(R.id.btnFormView);
         btnView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,6 +55,19 @@ public class FormArrayAdapter extends ArrayAdapter<Form> {
                 context.startActivity(intent);
             }
         });
+
+        final Button undo = (Button) rowView.findViewById(R.id.btnUndoChanges);
+        undo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(context, SyncUndo.class);
+                //based on item add info to intent
+                intent.putExtra("form_id", form.getFormId());
+                context.startActivity(intent);
+            }
+        });
+
         return rowView;
     }
 

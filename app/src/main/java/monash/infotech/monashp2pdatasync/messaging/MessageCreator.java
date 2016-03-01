@@ -32,6 +32,7 @@ import monash.infotech.monashp2pdatasync.entities.form.HandleSyncResultType;
 import monash.infotech.monashp2pdatasync.entities.form.Log;
 import monash.infotech.monashp2pdatasync.entities.form.LogItems;
 import monash.infotech.monashp2pdatasync.entities.form.LogType;
+import monash.infotech.monashp2pdatasync.entities.form.Priority;
 import monash.infotech.monashp2pdatasync.sync.entities.SyncResponse;
 import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
 
@@ -248,11 +249,12 @@ public class MessageCreator {
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
         syncRespondJson.put("request", json);
+        //add the last logid
         syncRespondJson.put("lastLogId", Logger.lastLogId);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
-
+    //create a response msg that only has respond list
     public static Message createSyncResponseChangesMsg(List<HandleSyncResult> handleSyncResults) throws JSONException, SQLException {
         Message msg = new Message(DatabaseManager.SequencePlusPlus("msgNo"));
         JSONArray syncResult = SyncRespondMsg(handleSyncResults);
@@ -265,11 +267,12 @@ public class MessageCreator {
         msg.setType(MessageType.syncRespond);
         JSONObject syncRespondJson = new JSONObject();
         syncRespondJson.put("respond", syncResult);
+        //add the last log id
         syncRespondJson.put("lastLogId", Logger.lastLogId);
         msg.setMsgBody(syncRespondJson.toString());
         return msg;
     }
-
+    //crete a sync request msg
     public static Message createSyncRequest() throws SQLException, JSONException {
         Message msg = null;
         try {
@@ -277,7 +280,7 @@ public class MessageCreator {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        //get sender and reciver from connection manager
+        //get sender and receiver from connection manager
         ConnectionManager manager = ConnectionManager.getManager();
         Peer sender = manager.getLocalDevice();
         Peer reciver = manager.getConnectedDevice();
@@ -292,6 +295,7 @@ public class MessageCreator {
         GenericRawResults<String[]> values = logItemDao.queryRaw(query);
         String[] columnNames = values.getColumnNames();
         JSONArray json = new JSONArray();
+        //iterates over the retrieved log items, and create a json msg
         for (String[] value : values.getResults()) {
             if (value[0].equals("SOUND") || value[0].equals("VIDEO") || value[0].equals("IMAGE")) {
                 msg.addFile(value[2]);
@@ -317,7 +321,7 @@ public class MessageCreator {
                 JSONObject semanticKey = new JSONObject();
                 String semanticKeyColumn = formType.getSemanticKey();
                 JSONArray semanticKeyJsonArray = new JSONArray(semanticKeyColumn);
-                //if there is any semantic key
+                //if there is any semantic key, add it to the msg
                 List<KeyVal> semanticItemList = new ArrayList<>();
                 if (semanticKeyJsonArray.length() > 0) {
                     for (int semanticCounter = 0; semanticCounter < semanticKeyJsonArray.length(); semanticCounter++) {
@@ -345,12 +349,14 @@ public class MessageCreator {
             }
             JSONObject log = null;
             JSONArray log_items = formJson.getJSONArray("logs");
+            //try to find the log
             for (int i = 0; i < log_items.length(); i++) {
                 if (log_items.getJSONObject(i).has("log_id") && log_items.getJSONObject(i).getString("log_id").equals(value[columnNames.length - 2])) {
                     log = log_items.getJSONObject(i);
                     break;
                 }
             }
+            //if not exist, create a new log and add it to the log_items array
             if (log == null) {
                 log = new JSONObject();
                 log.put("logtimestamp", value[columnNames.length - 3]);
@@ -358,17 +364,20 @@ public class MessageCreator {
                 log.put("log_items", new JSONArray());
                 log_items.put(log);
             }
+            //add the item to the log
             JSONObject logItem = new JSONObject();
             logItem.put(columnNames[1], value[1]);
             logItem.put(columnNames[2], value[2]);
             log.getJSONArray("log_items").put(logItem);
         }
         Gson gson = new Gson();
-
+        //generate msg
         msg.setSender(sender);
         msg.setReciver(reciver);
         msg.setType(MessageType.syncRequest);
         msg.setMsgBody(json.toString());
         return msg;
     }
+
+
 }

@@ -12,6 +12,7 @@ import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
 
 /**
  * Created by john on 1/26/2016.
+ * Based on msg type, call the corresponding method to handle it
  */
 public class MessageHandler {
 

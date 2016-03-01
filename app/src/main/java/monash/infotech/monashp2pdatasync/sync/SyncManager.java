@@ -1,18 +1,14 @@
 package monash.infotech.monashp2pdatasync.sync;
 
-import android.util.Log;
-
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.GenericRawResults;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +30,6 @@ import monash.infotech.monashp2pdatasync.entities.form.LogType;
 import monash.infotech.monashp2pdatasync.messaging.Message;
 import monash.infotech.monashp2pdatasync.messaging.MessageCreator;
 import monash.infotech.monashp2pdatasync.sync.conflictresolution.ConflictResolution;
-import monash.infotech.monashp2pdatasync.sync.conflictresolution.RecentWinConflictResolution;
 import monash.infotech.monashp2pdatasync.sync.entities.SyncResponse;
 import monash.infotech.monashp2pdatasync.sync.entities.SyncResponseType;
 import monash.infotech.monashp2pdatasync.utils.Compress;
@@ -43,14 +38,17 @@ import monash.infotech.monashp2pdatasync.utils.Compress;
  * Created by john on 12/8/2015.
  */
 public class SyncManager {
-
+    //create and send sync respond
     public static void sendSyncRespond(List<HandleSyncResult> handleSyncResults) {
         try {
+            //create sync msg
             Message msg = MessageCreator.createSyncResponse(handleSyncResults);
+            //if sync msg has file, compress and send it
             if (msg.getFiles() != null && !msg.getFiles().isEmpty()) {
                 byte[] zip = Compress.zip(msg);
                 ConnectionManager.getManager().sendFile(zip);
             } else {
+                //convert msg to json and send it
                 Gson gson = new Gson();
                 ConnectionManager.getManager().sendFile(gson.toJson(msg));
             }
@@ -64,35 +62,50 @@ public class SyncManager {
             e.printStackTrace();
         }
     }
-
+    //handle sync end msg
     public static void handelSynEndMsg(Message msg) throws SQLException, JSONException, IllegalAccessException {
         Gson gson = new Gson();
+        //convert json to object
         SyncResponse syncResponse = gson.fromJson(msg.getMsgBody(), SyncResponse.class);
+        //if type is success
         if (syncResponse.getType().equals(SyncResponseType.SUCCESS)) {
+            //find the sync history by mac address
             SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(ConnectionManager.getManager().getConnectedDevice().getMacAddress());
             if(syncHistory==null) {
+                //if not exist crete a new one
                 syncHistory=new SyncHistory(ConnectionManager.getManager().getConnectedDevice().getMacAddress(), syncResponse.getLastLogId());
             }
             else
             {
+                //update the last sync time(log id)
                 syncHistory.setSynTime(syncResponse.getLastLogId());
             }
+            //apply changes
             DatabaseManager.getSyncHistoryDao().createOrUpdate(syncHistory);
         }
+        //disconnect
         ConnectionManager.getManager().disconnect();
     }
 
     public static void handleSyncResponse(Message msg) throws SQLException, JSONException, IllegalAccessException {
+        //get msg body as json
         JSONObject jsonMsg = new JSONObject(msg.getMsgBody());
+        //get list of requested item to change
         JSONArray requestedItems = jsonMsg.has("request")?jsonMsg.getJSONArray("request"):null;
+        //get a list of item that generate in respond to sync request (during conflict resolved, the sync request value didn't win )
         JSONArray respondsItem = jsonMsg.has("respond")?jsonMsg.getJSONArray("respond"):null;
+        //apply changes based on requested item
         List<HandleSyncResult> handleSyncResults = handleSync(requestedItems, msg.getSender(), msg.getReciver());
+        //insert respondsItem
         applyResolvedChanges(respondsItem, msg.getSender());
         SyncResponse syncResponse = new SyncResponse(SyncResponseType.SUCCESS, "");
+        //if there is some modified items in respond to requestedItems, send another respond msg
         if (handleSyncResults != null && !handleSyncResults.isEmpty()) {
+
             sendSyncResponseChangesMsg(handleSyncResults);
         }
         else {
+            //inser the last log id into db
             int lastLogId=jsonMsg.getInt("lastLogId");
             SyncHistory syncHistory = DatabaseManager.getSyncHistoryDao().queryForId(ConnectionManager.getManager().getConnectedDevice().getMacAddress());
             if(syncHistory==null) {
@@ -103,13 +116,25 @@ public class SyncManager {
                 syncHistory.setSynTime(lastLogId);
             }
             DatabaseManager.getSyncHistoryDao().createOrUpdate(syncHistory);
+            //create and send end msg
             sendSynEndMsg(syncResponse);
         }
     }
+
+    //send a response msg that only has respond list
     public static void sendSyncResponseChangesMsg(List<HandleSyncResult> handleSyncResults) throws JSONException, SQLException {
-        Message syncResponseChangesMsg = MessageCreator.createSyncResponseChangesMsg(handleSyncResults);
-        ConnectionManager.getManager().sendFile(new Gson().toJson(syncResponseChangesMsg));
+        Message msg = MessageCreator.createSyncResponseChangesMsg(handleSyncResults);
+        if (msg.getFiles() != null && !msg.getFiles().isEmpty()) {
+            byte[] zip = Compress.zip(msg);
+            ConnectionManager.getManager().sendFile(zip);
+        } else {
+            //convert msg to json and send it
+            Gson gson = new Gson();
+            ConnectionManager.getManager().sendFile(gson.toJson(msg));
+        }
     }
+
+    //apply all the changes in respond list and log it
     private static void applyResolvedChanges(JSONArray respondList, Peer sender) throws JSONException, SQLException, IllegalAccessException {
         if(respondList==null)
             return;
@@ -137,13 +162,15 @@ public class SyncManager {
         }
     }
 
+
+    //apply changes and call conflict resolver if its needed. Return a list of modified items
     public static List<HandleSyncResult> handleSync(JSONArray json, Peer sender, Peer reciver) throws SQLException, JSONException, IllegalAccessException {
         if(json==null)
             return null;
         Dao<Form, String> formDao = DatabaseManager.getFormDao();
         Dao<Item, Integer> itemDao = DatabaseManager.getItemDao();
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
-        ConflictResolution cr = new RecentWinConflictResolution();
+        ConflictResolution cr = new ConflictResolution();
         Logger logger = new Logger(sender.getDeviceName());
         FormItem[] oldFormItems = null;
         List<HandleSyncResult> syncResult = new ArrayList<>();
@@ -259,7 +286,7 @@ public class SyncManager {
         return syncResult;
     }
 
-
+    //receive a sync request msg, make required changes and send a sync response
     public static void handelSyncRequest(Message msg) throws IllegalAccessException, SQLException, JSONException {
         List<HandleSyncResult> handleSyncResults = handleSync(new JSONArray(msg.getMsgBody()), msg.getSender(), msg.getReciver());
         sendSyncRespond(handleSyncResults);
@@ -302,7 +329,7 @@ public class SyncManager {
         //send
         connectionManager.sendFile(msg.toJson());
     }
-
+    //create and send a sync fail msg
     public static void sendSynFailMsg(String msg) {
         ConnectionManager connectionManager = ConnectionManager.getManager();
         SyncResponse response = new SyncResponse(SyncResponseType.FAIL, msg);

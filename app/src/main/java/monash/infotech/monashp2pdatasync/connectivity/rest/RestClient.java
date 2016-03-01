@@ -10,6 +10,7 @@ import monash.infotech.monashp2pdatasync.entities.UserRole;
 
 /**
  * Created by john on 11/30/2015.
+simple rest client to calling the web api (login, register)
  */
 public class RestClient {
 

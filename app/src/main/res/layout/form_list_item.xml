@@ -22,15 +22,17 @@
         android:id="@+id/btnFormView"
         android:layout_gravity="left"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/btnFormDelete" />
+        android:layout_toLeftOf="@+id/btnUndoChanges"
+        android:layout_toStartOf="@+id/btnUndoChanges" />
+
+
     <Button
-        style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="delete"
-        android:id="@+id/btnFormDelete"
-        android:layout_gravity="right"
+        android:text="Undo"
+        android:id="@+id/btnUndoChanges"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/btnFormView" />
 </RelativeLayout>

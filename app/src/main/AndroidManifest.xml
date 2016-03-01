@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="monash.infotech.monashp2pdatasync" >
+    package="monash.infotech.monashp2pdatasync">
 
     <uses-sdk android:minSdkVersion="14" />
     <!-- Request permission to use the Wi-Fi hardware on the device! -->
@@ -16,37 +16,35 @@
     <!-- Required to show current location -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Required OpenGL ES 2.0. for Maps V2 -->
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true" />
     <!-- Required for using camera -->
-    <uses-feature android:name="android.hardware.camera"
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="true" />
+
     <application
-        android:largeHeap="true"
         android:name=".app.P2PApplicationContext"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:largeHeap="true"
+        android:theme="@style/AppTheme">
         <activity
             android:name=".app.HomeActivity"
-            android:label="@string/app_name" >
-        </activity>
+            android:label="@string/app_name"></activity>
         <activity
             android:name=".app.Register"
-            android:label="@string/title_activity_register" >
-        </activity>
+            android:label="@string/title_activity_register"></activity>
         <activity
             android:name=".app.Login"
-            android:label="@string/title_activity_login" >
-        </activity>
+            android:label="@string/title_activity_login"></activity>
         <activity
             android:name=".app.MainActivity"
-            android:label="@string/title_activity_main" >
+            android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -55,8 +53,7 @@
         </activity>
         <activity
             android:name=".app.DataEntryActivity"
-            android:label="@string/title_activity_data_entry" >
-        </activity>
+            android:label="@string/title_activity_data_entry"></activity>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
@@ -64,14 +61,11 @@
 
         <activity
             android:name=".app.FormListActivity"
-            android:label="@string/title_activity_form_list" >
-
-        </activity>
+            android:label="@string/title_activity_form_list"></activity>
         <activity
             android:name=".app.MainFragmentActivity"
-            android:label="@string/title_activity_main_fragment" >
-
-        </activity>
+            android:label="@string/title_activity_main_fragment"></activity>
+        <activity android:name=".app.SyncUndo"></activity>
     </application>
 
 </manifest>

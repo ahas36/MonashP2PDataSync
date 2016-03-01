@@ -15,7 +15,7 @@ import math.geom2d.polygon.SimplePolygon2D;
 import monash.infotech.monashp2pdatasync.entities.Point;
 
 /**
- * Created by Ali
+ * Created by John
  * This class defines different methods for resolving the conflicts
  */
 public class ConflictResolverMethods {

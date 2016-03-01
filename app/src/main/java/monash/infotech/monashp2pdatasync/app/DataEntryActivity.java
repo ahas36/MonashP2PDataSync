@@ -127,11 +127,6 @@ public class DataEntryActivity extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         Dao<FormItem, Integer> formItemDao = DatabaseManager.getFormItemDao();
         for (Item item : items) {
-            if(item.getItemTitle().equals("healthsemanticId2") || item.getItemTitle().equals("healthsemanticId1") )
-            {
-                int x=2+4;
-                int y=x*x;
-            }
             String itemValue = "";
             if (form != null) {
                 PreparedQuery<FormItem> formItemQuery = formItemDao.queryBuilder().where().eq("item_id", item.getItemId()).and().eq("form_id", form.getFormId()).prepare();

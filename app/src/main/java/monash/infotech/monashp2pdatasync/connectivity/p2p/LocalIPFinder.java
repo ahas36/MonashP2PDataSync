@@ -50,7 +50,7 @@ public class LocalIPFinder {
         }
         return ipAddrStr;
     }
-
+    //find wifi direct mac address
     public static String getMacAddress(Context context) {
         try {
             List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());

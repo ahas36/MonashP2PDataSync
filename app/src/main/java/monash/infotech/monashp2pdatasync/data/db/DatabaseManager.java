@@ -19,6 +19,7 @@ import monash.infotech.monashp2pdatasync.entities.form.LogItems;
 
 /**
  * Created by john on 1/27/2016.
+ * create and store all the dao. Whenever its needed, other calsses call this calls to get access to requested dao
  */
 public class DatabaseManager {
     //dao's
@@ -125,7 +126,7 @@ public class DatabaseManager {
     public static DatabaseHelper getHelper() {
         return helper;
     }
-
+    //delete all tables
     public static void deleteAll()
     {
         try {
