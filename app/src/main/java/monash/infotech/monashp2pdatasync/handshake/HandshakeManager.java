@@ -59,10 +59,10 @@ public class HandshakeManager {
         //read and decrypt token
         String token = msgBody.getString("token");
         long lastSync = msgBody.getLong("lastSync");
-//        if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
-//            sendHandshakeFailMessage("authentication failed");
-//            return false;
-//        }
+        if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
+            sendHandshakeFailMessage("authentication failed");
+            return false;
+        }
 
         ConnectionManager connectionManager = ConnectionManager.getManager();
         connectionManager.updateLocalPeer();
@@ -89,10 +89,10 @@ public class HandshakeManager {
         String token = msgBody.getString("token");
         long lastSync = msgBody.getLong("lastSync");
 
-//        if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
-//            SyncManager.sendSynEndMsg(new SyncResponse(SyncResponseType.FAIL, "authentication faild"));
-//            return false;
-//        }
+        if (!Security.getInstance().authenticate(msg.getSender().getUserContext(), token)) {
+            SyncManager.sendSynEndMsg(new SyncResponse(SyncResponseType.FAIL, "authentication faild"));
+            return false;
+        }
         ConnectionManager connectionManager = ConnectionManager.getManager();
         //update connected peer
         connectionManager.setConnectedPeerIpAddress(msg.getSender().getIPAddress(), msg.getSender().getMacAddress());

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MonashP2PDataSync.iml" filepath="$PROJECT_DIR$/MonashP2PDataSync.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MonashP2PDataSyncNew.iml" filepath="$PROJECT_DIR$/MonashP2PDataSyncNew.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
